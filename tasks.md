@@ -40,17 +40,17 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 ### Infrastructure
 
-- [ ] 1.1: Create frontend S3 bucket (`firstaid-ai-frontend`). Disable public access. Configure for static website hosting (index.html as default). [CRITICAL]
-- [ ] 1.2: Create CloudFront distribution with S3 origin via OAC. Enable HTTPS. Set default root object to `index.html`. Configure 403/404 error responses to return `/index.html` with HTTP 200 (SPA routing fallback). [CRITICAL]
-- [ ] 1.3: Create Lambda function (`firstaid-ai-triage`). Runtime: Node.js 20.x. Memory: 512 MB. Timeout: 15 seconds. [CRITICAL]
+- [x] 1.1: Create frontend S3 bucket (`firstaid-ai-frontend`). Disable public access. Configure for static website hosting (index.html as default). [CRITICAL]
+- [x] 1.2: Create CloudFront distribution with S3 origin via OAC. Enable HTTPS. Set default root object to `index.html`. Configure 403/404 error responses to return `/index.html` with HTTP 200 (SPA routing fallback). [CRITICAL]
+- [x] 1.3: Create Lambda function (`firstaid-ai-triage`). Runtime: Node.js 20.x. Memory: 512 MB. Timeout: 15 seconds. [CRITICAL]
 - [ ] 1.4: Create API Gateway HTTP API. Add route: `POST /api/triage` → Lambda integration. Configure CORS: allow origin = CloudFront distribution domain, allow methods = POST, allow headers = Content-Type. [CRITICAL]
 - [ ] 1.5: Create Lambda IAM execution role with least-privilege policy: `bedrock:InvokeModel` (scoped to Claude model ARN), `bedrock-agent-runtime:Retrieve` (scoped to KB ARN), `ssm:GetParameter` (scoped to Places API key parameter ARN), `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`. Attach role to Lambda. [CRITICAL]
 - [ ] 1.6: Verify Lambda can be invoked via API Gateway with a test payload. Confirm CORS headers in response.
 
 ### Scaffolding
 
-- [ ] 1.7: Scaffold React + Vite + TypeScript + Tailwind CSS frontend project. Confirm `npm run dev` and `npm run build` succeed. [CRITICAL]
-- [ ] 1.8: Define shared TypeScript types in `src/types/api.ts`: `TriageRequest`, `TriageResponse`, `ClarificationResponse`, `ErrorResponse`, `Facility`, `Severity`, `ClarificationReason`. [CRITICAL]
+- [x] 1.7: Scaffold React + Vite + TypeScript + Tailwind CSS frontend project. Confirm `npm run dev` and `npm run build` succeed. [CRITICAL]
+- [x] 1.8: Define shared TypeScript types in `src/types/api.ts`: `TriageRequest`, `TriageResponse`, `ClarificationResponse`, `ErrorResponse`, `Facility`, `Severity`, `ClarificationReason`. [CRITICAL]
 - [ ] 1.9: Scaffold Lambda TypeScript project with esbuild. Confirm `npm run build` produces `dist/handler.js`. [CRITICAL]
 - [ ] 1.10: Write frontend deployment script: `aws s3 sync dist/ s3://firstaid-ai-frontend/ --delete` + CloudFront invalidation.
 - [ ] 1.11: Write backend deployment script: TypeScript build + `aws lambda update-function-code`.
@@ -62,9 +62,9 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 ### Lambda Handler Scaffolding
 
-- [ ] 2.1: Implement request parsing and validation in Lambda handler: parse JSON body, validate `query` (required, string, max 500 chars), validate `location` (optional, lat/lng numbers). Return 400 on invalid input. [CRITICAL]
+- [x] 2.1: Implement request parsing and validation in Lambda handler: parse JSON body, validate `query` (required, string, max 500 chars), validate `location` (optional, lat/lng numbers). Return 400 on invalid input. [CRITICAL]
 - [ ] 2.2: Implement SSM Parameter Store integration: read Places API key at cold start, cache in module scope. Use `@aws-sdk/client-ssm`. [CRITICAL]
-- [ ] 2.3: Implement CORS response headers helper. All Lambda responses must include `Access-Control-Allow-Origin` set to CloudFront domain.
+- [x] 2.3: Implement CORS response headers helper. All Lambda responses must include `Access-Control-Allow-Origin` set to CloudFront domain.
 
 ### Stage 1: Parser Integration [CRITICAL]
 
