@@ -52,14 +52,10 @@
 │   │       └── api.ts       # Shared types (mirrors frontend types/api.ts)
 │   ├── esbuild.config.js
 │   └── package.json
-└── corpus/                  # Medical protocol documents for Bedrock Knowledge Base
-    └── {scenario-tag}-{source}-{sequence}.txt
-        # e.g., burns-nhs-001.txt, choking-redcross-001.txt
 ```
 
 ## Naming Conventions
 
-- **Corpus files:** `{scenario-tag}-{source}-{sequence}.txt` — e.g., `burns-nhs-001.txt`
 - **React components:** PascalCase, one component per file
 - **Hooks:** camelCase prefixed with `use` — e.g., `useGeolocation.ts`
 - **API types:** defined in `types/api.ts`, shared between frontend and backend

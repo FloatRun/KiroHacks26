@@ -70,7 +70,7 @@ handler.ts
 
 | Property | Value |
 |---|---|
-| Data source | S3 bucket `firstaid-ai-corpus` |
+| Data source | Bedrock built-in web scraper (curated URLs: NHS 111, MedlinePlus, CDC, Red Cross, WHO) |
 | Chunking | Fixed-size, ~300 tokens, 20% overlap |
 | Embedding model | Amazon Titan Text Embeddings v2 |
 | Vector store | OpenSearch Serverless |

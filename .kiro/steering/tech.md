@@ -85,5 +85,5 @@ The following must be authored and tested by humans — do not regenerate them:
 
 - **Parser system prompt** — calibrates retrieve/clarify bias; must pass all 5 demo scenarios
 - **Formatter system prompt** — enforces step count, character limits, over-escalation bias
-- **Similarity threshold (0.5)** — empirically set against the specific corpus
-- **Corpus document selection** — requires human judgment on source authority and scenario coverage
+- **Similarity threshold (0.5)** — empirically set against the scraped content
+- **Source URL selection** — requires human judgment on source authority and scenario coverage across the 15–20 target scenarios
