@@ -1,0 +1,25 @@
+First AID Bot
+
+Response need for categories
+
+-snake bites
+-fractures
+-hypothermia
+-dehydration
+-Road Accident
+-gym - muscle tears and sprains
+-Designed for:
+    someone with zero training
+    ultra-simple:
+    voice + visuals
+
+
+Features:
+
+-Resource-Aware Guidance
+-Age aware. Child or elderly, or even pet care
+-Offline-First Architecture
+- deterministic flows (Red Cross style)
+    LLM only for:
+    explanation
+    flexibility
