@@ -3,27 +3,32 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Facility } from '../types/api'
 
-// Fix Leaflet's default icon paths broken by Vite's asset handling.
-// We delete the internal _getIconUrl method and point to the CDN copies
-// so no PNG imports are needed (avoids TS module resolution issues).
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+// Inline SVG icons — no external URLs, no broken asset paths
+const facilityIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
+  <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#dc2626"/>
+  <circle cx="12" cy="12" r="5" fill="white"/>
+</svg>`
+
+const facilityIcon = new L.DivIcon({
+  html: facilityIconSvg,
+  className: '',
+  iconSize: [24, 36],
+  iconAnchor: [12, 36],
+  popupAnchor: [0, -36],
 })
 
+const userIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">
+  <circle cx="14" cy="14" r="12" fill="#2563eb" stroke="white" stroke-width="3"/>
+  <circle cx="14" cy="14" r="5" fill="white"/>
+</svg>`
+
 /** Distinct blue icon for the user's own location */
-const userIcon = new L.Icon({
-  iconUrl:
-    'data:image/svg+xml;base64,' +
-    btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
-      <circle cx="12" cy="12" r="10" fill="#2563eb" stroke="white" stroke-width="2"/>
-      <circle cx="12" cy="12" r="4" fill="white"/>
-    </svg>`),
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-  popupAnchor: [0, -16],
+const userIcon = new L.DivIcon({
+  html: userIconSvg,
+  className: '',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -14],
 })
 
 function formatDistance(meters: number): string {
@@ -96,6 +101,7 @@ export default function FacilityMap({ facilities, userLocation }: FacilityMapPro
             <Marker
               key={facility.placeId}
               position={[facility.lat, facility.lng]}
+              icon={facilityIcon}
               aria-label={`${facility.name}, ${formatDistance(facility.distanceMeters)} away`}
             >
               <Popup minWidth={200}>
