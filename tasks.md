@@ -26,11 +26,11 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 - [x] PE-1: Enable Amazon Bedrock model access for Anthropic Claude (claude-sonnet-4) in the target AWS region (us-west-2 or us-east-1). Verify via Bedrock console. [CRITICAL]
 - [x] PE-2: Enable Amazon Bedrock model access for Amazon Titan Text Embeddings v2. Verify via Bedrock console. [CRITICAL]
-- [ ] PE-3: Identify and curate the list of authoritative URLs to scrape for the 15–20 target scenarios (burns, cuts, choking, allergic reactions, head injuries, chest pain, fainting, poisoning, sprains, eye injuries, nosebleeds, animal bites, seizures, asthma attacks, hypoglycemia). Sources: NHS 111, MedlinePlus, CDC, Red Cross, WHO. [CRITICAL]
+- [x] PE-3: Identify and curate the list of authoritative URLs to scrape for the 15–20 target scenarios (burns, cuts, choking, allergic reactions, head injuries, chest pain, fainting, poisoning, sprains, eye injuries, nosebleeds, animal bites, seizures, asthma attacks, hypoglycemia). Sources: NHS 111, MedlinePlus, CDC, Red Cross, WHO. [CRITICAL]
 - [x] PE-4: ~~Create S3 corpus bucket (`firstaid-ai-corpus`) and upload all corpus documents.~~ N/A — replaced by web scraper data source.
-- [ ] PE-5: Create Bedrock Knowledge Base with web scraper data source. Configure target URLs from PE-3. Configure: fixed-size chunking (~300 tokens, 20% overlap), Titan Text Embeddings v2, OpenSearch Serverless vector store. [CRITICAL]
-- [ ] PE-6: Run initial Knowledge Base ingestion and verify via Bedrock console test query. Confirm at least one scenario returns chunks with similarity score ≥ 0.5. [CRITICAL]
-- [ ] PE-7: Store Google Places API key in AWS Systems Manager Parameter Store as SecureString at path `/firstaid-ai/places-api-key`. [CRITICAL]
+- [x] PE-5: Create Bedrock Knowledge Base with web scraper data source. Configure target URLs from PE-3. Configure: fixed-size chunking (~300 tokens, 20% overlap), Titan Text Embeddings v2, OpenSearch Serverless vector store. [CRITICAL]
+- [x] PE-6: Run initial Knowledge Base ingestion and verify via Bedrock console test query. Confirm at least one scenario returns chunks with similarity score ≥ 0.5. [CRITICAL]
+- [x] PE-7: Store Google Places API key in AWS Systems Manager Parameter Store as SecureString at path `/firstaid-ai/places-api-key`. [CRITICAL]
 - [x] PE-8: Configure Kiro steering documents in `.kiro/steering/`: architecture.md, api-contract.md, tool-schemas.md, component-map.md, demo-scenarios.md.
 - [x] PE-9: Review requirements.md, design.md, and tasks.md for consistency. Confirm all five demo scenarios are covered.
 
