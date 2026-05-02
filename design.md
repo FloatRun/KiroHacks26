@@ -524,7 +524,7 @@ The frontend S3 bucket policy grants `s3:GetObject` to the CloudFront service pr
 | Parser InvokeModel throws | Catch, log error, return 503 | `{ error: "parser_unavailable" }` |
 | Parser returns unexpected shape | Treat as parser failure, return 503 | `{ error: "parser_unavailable" }` |
 | KB Retrieve throws | Catch, log error, return 503 | `{ error: "retrieval_unavailable" }` |
-| Max similarity < threshold | Return out-of-scope triage response | `{ type: "triage", outOfScope: true, severity: "self_care", steps: [], careTier: "self_care", reasoning: "...", outOfScope: true }` |
+| Max similarity < threshold | Return out-of-scope triage response | `{ type: "triage", severity: "self_care", steps: [], careTier: "self_care", outOfScope: true }` |
 | Formatter InvokeModel throws | Catch, log error, return 503 | `{ error: "triage_unavailable" }` |
 | Formatter returns outOfScope: true | Return out-of-scope triage response | Same as above |
 | Places API throws or times out | Log error, continue with empty facilities | `{ type: "triage", ..., facilities: [] }` |
