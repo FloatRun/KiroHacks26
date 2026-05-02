@@ -23,4 +23,5 @@ Features:
     LLM only for:
     explanation
     flexibility
+- resource-aware (if we don't have something then suggest alternative)
 - shows: risk progression ( if done nothing or done less)
