@@ -23,3 +23,4 @@ Features:
     LLM only for:
     explanation
     flexibility
+- shows: risk progression ( if done nothing or done less)
