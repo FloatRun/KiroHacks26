@@ -12,16 +12,3 @@ Response need for categories
     someone with zero training
     ultra-simple:
     voice + visuals
-
-
-Features:
-
--Resource-Aware Guidance
--Age aware. Child or elderly, or even pet care
--Offline-First Architecture
-- deterministic flows (Red Cross style)
-    LLM only for:
-    explanation
-    flexibility
-- resource-aware (if we don't have something then suggest alternative)
-- shows: risk progression ( if done nothing or done less)
