@@ -6,7 +6,7 @@ import { findNearbyFacilities } from './places.js'
 import { getPlacesApiKey } from './ssm.js'
 import type { TriageRequest, ApiResponse, ErrorResponse } from './types/api.js'
 
-const SIMILARITY_THRESHOLD = parseFloat(process.env.SIMILARITY_THRESHOLD || '0.5')
+const SIMILARITY_THRESHOLD = Number.parseFloat(process.env.SIMILARITY_THRESHOLD || '0.5')
 const CLOUDFRONT_ORIGIN = process.env.CLOUDFRONT_ORIGIN || '*'
 
 /**
@@ -173,7 +173,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   }
 
   // 10. Service finder (non-blocking)
-  let facilities = []
+  let facilities: Facility[] = []
   if (formatterResult.careTier !== 'self_care' && request.location && placesApiKey) {
     try {
       facilities = await findNearbyFacilities(
