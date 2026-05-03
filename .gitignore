@@ -39,3 +39,5 @@ cdk.out/
 # Temporary files
 *.tmp
 *.temp
+
+*pycache*
