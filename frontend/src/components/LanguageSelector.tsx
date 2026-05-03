@@ -14,28 +14,34 @@ export default function LanguageSelector() {
 
   return (
     <div className="relative">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label={t('language.select')}
-        className={[
-          'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium',
-          'bg-white/80 backdrop-blur-sm border border-gray-200 shadow-sm',
-          'hover:bg-white hover:shadow-md transition-all duration-200',
-          'focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1',
-        ].join(' ')}
-      >
-        <span aria-hidden="true">{currentLanguage?.flag}</span>
-        <span className="hidden sm:inline">{currentLanguage?.name}</span>
-        <svg 
-          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
+      <div className="group">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={t('language.select')}
+          className={[
+            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium',
+            'bg-white/80 backdrop-blur-sm border border-gray-200 shadow-sm',
+            'hover:bg-white hover:shadow-md transition-all duration-200',
+            'focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1',
+            'relative',
+          ].join(' ')}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          {/* Small pulsing indicator to suggest language switching */}
+          <div className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse opacity-60"></div>
+          
+          <span aria-hidden="true">{currentLanguage?.flag}</span>
+          <span className="hidden sm:inline">{currentLanguage?.name}</span>
+          <svg 
+            className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
 
       {isOpen && (
         <>

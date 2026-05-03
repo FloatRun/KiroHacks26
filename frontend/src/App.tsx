@@ -117,20 +117,21 @@ function AppContent() {
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-4 shadow-sm">
         <div className="mx-auto flex max-w-lg items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Red Cross Logo */}
+            {/* Medical Cross Logo - Better design */}
             <div 
               aria-hidden="true" 
               className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 shadow-md"
             >
               <svg 
-                width="20" 
-                height="20" 
+                width="24" 
+                height="24" 
                 viewBox="0 0 24 24" 
                 fill="none" 
                 className="text-white"
               >
+                {/* Thicker, more prominent medical cross */}
                 <path 
-                  d="M13 3h-2v8H3v2h8v8h2v-8h8v-2h-8V3z" 
+                  d="M10 2h4v8h8v4h-8v8h-4v-8H2v-4h8V2z" 
                   fill="currentColor"
                 />
               </svg>

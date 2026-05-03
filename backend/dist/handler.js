@@ -327,7 +327,7 @@ async function getPlacesApiKey() {
 }
 
 // src/handler.ts
-var SIMILARITY_THRESHOLD = parseFloat(process.env.SIMILARITY_THRESHOLD || "0.5");
+var SIMILARITY_THRESHOLD = Number.parseFloat(process.env.SIMILARITY_THRESHOLD || "0.5");
 var CLOUDFRONT_ORIGIN = process.env.CLOUDFRONT_ORIGIN || "*";
 function corsHeaders() {
   return {

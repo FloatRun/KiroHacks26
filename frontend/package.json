@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && aws s3 sync dist/ s3://firstaid-ai-frontend/ --delete && aws cloudfront create-invalidation --distribution-id E1234567890ABC --paths '/*'"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

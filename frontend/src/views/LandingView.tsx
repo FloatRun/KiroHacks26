@@ -50,6 +50,18 @@ export default function LandingView({ onSubmit, disabled }: LandingViewProps) {
       {/* Input */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
         <QueryInput onSubmit={onSubmit} disabled={disabled} />
+        
+        {/* Language Hint - shows in opposite language */}
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-xs text-blue-700 font-medium">
+              {t('language.hint')}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Trust signals */}

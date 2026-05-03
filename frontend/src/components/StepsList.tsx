@@ -27,7 +27,7 @@ export default function StepsList({ steps }: StepsListProps) {
           >
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-sm font-bold text-red-700"
             >
               {index + 1}
             </span>

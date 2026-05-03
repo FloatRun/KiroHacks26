@@ -40,11 +40,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // App Header
-    'app.title': 'FirstAid AI',
+    'app.title': 'FirstAId',
     'app.subtitle': 'Emergency Guidance',
     
     // Landing Page
-    'landing.title': 'FirstAid AI',
+    'landing.title': 'FirstAId',
     'landing.description': 'Describe your medical situation and get clear, grounded first-aid guidance in seconds. {free} No account required.',
     'landing.free': 'Free.',
     'landing.input.label': 'Describe your medical situation',
@@ -129,15 +129,18 @@ const translations: Record<Language, Record<string, string>> = {
     'language.select': 'Language',
     'language.en': 'English',
     'language.es': 'Español',
+    
+    // Language Hint (shown in opposite language)
+    'language.hint': '¿Hablas español? Puedes escribir en español o cambiar el idioma arriba.',
   },
   
   es: {
     // App Header
-    'app.title': 'FirstAid AI',
+    'app.title': 'FirstAId',
     'app.subtitle': 'Guía de Emergencias',
     
     // Landing Page
-    'landing.title': 'FirstAid AI',
+    'landing.title': 'FirstAId',
     'landing.description': 'Describe su situación médica y obtenga orientación clara y fundamentada de primeros auxilios en segundos. {free} No se requiere cuenta.',
     'landing.free': 'Gratis.',
     'landing.input.label': 'Describe tu situación médica',
@@ -222,5 +225,8 @@ const translations: Record<Language, Record<string, string>> = {
     'language.select': 'Idioma',
     'language.en': 'English',
     'language.es': 'Español',
+    
+    // Language Hint (shown in opposite language)
+    'language.hint': 'Do you speak English? You can type in English or change the language above.',
   },
 }
