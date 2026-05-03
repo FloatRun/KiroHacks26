@@ -28,7 +28,8 @@ module.exports = __toCommonJS(handler_exports);
 var import_client_bedrock_runtime = require("@aws-sdk/client-bedrock-runtime");
 var client = new import_client_bedrock_runtime.BedrockRuntimeClient({ region: process.env.AWS_REGION });
 var MODEL_ID = process.env.CLAUDE_MODEL_ID || "us.anthropic.claude-sonnet-4-20250514-v1:0";
-var PARSER_SYSTEM_PROMPT = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
+function getParserSystemPrompt(language) {
+  const basePrompt = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
 
 Rules:
 - Default to action "retrieve" when the scenario and at least one severity signal are reasonably inferable from the input.
@@ -37,6 +38,13 @@ Rules:
 - Clarification questions must be a single sentence, under 15 words, asking only for the single most diagnostically important missing piece of information.
 - Bias toward retrieve. When in doubt, retrieve.
 - Never produce prose. Only call the tool.`;
+  if (language === "es") {
+    return basePrompt + `
+
+IMPORTANT: If action is "clarify", respond in Spanish. The clarification question should be in Spanish and appropriate for Spanish-speaking users.`;
+  }
+  return basePrompt;
+}
 var PARSE_USER_INPUT_TOOL = {
   name: "parse_user_input",
   description: "Parse the user's described situation into either a normalized retrieval query or a clarification request.",
@@ -89,11 +97,11 @@ var PARSE_USER_INPUT_TOOL = {
     required: ["action"]
   }
 };
-async function invokeParser(query) {
+async function invokeParser(query, language = "en") {
   const payload = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 1024,
-    system: PARSER_SYSTEM_PROMPT,
+    system: getParserSystemPrompt(language),
     messages: [
       {
         role: "user",
@@ -149,7 +157,8 @@ async function retrieveFromKnowledgeBase(normalizedQuery) {
 var import_client_bedrock_runtime2 = require("@aws-sdk/client-bedrock-runtime");
 var client3 = new import_client_bedrock_runtime2.BedrockRuntimeClient({ region: process.env.AWS_REGION });
 var MODEL_ID2 = process.env.CLAUDE_MODEL_ID || "us.anthropic.claude-sonnet-4-20250514-v1:0";
-var FORMATTER_SYSTEM_PROMPT = `You are a medical triage formatter. Your only job is to call the submit_triage tool.
+function getFormatterSystemPrompt(language) {
+  const basePrompt = `You are a medical triage formatter. Your only job is to call the submit_triage tool.
 
 Rules:
 - Answer ONLY from the provided retrieval context. Do not use your general medical knowledge.
@@ -158,6 +167,13 @@ Rules:
 - If the retrieval context is thin, ambiguous, or does not clearly address the scenario, set outOfScope to true.
 - Bias toward over-escalation on severity. When uncertain between urgent_care and emergency, choose emergency.
 - Never produce prose. Only call the tool.`;
+  if (language === "es") {
+    return basePrompt + `
+
+IMPORTANT: Respond in Spanish. All steps must be written in clear, simple Spanish that a panicked Spanish-speaking person can understand. Use imperative voice (commands) in Spanish. Keep medical terms simple and accessible.`;
+  }
+  return basePrompt;
+}
 var SUBMIT_TRIAGE_TOOL = {
   name: "submit_triage",
   description: "Submit the final triage card based strictly on the retrieved medical protocol context.",
@@ -190,7 +206,7 @@ var SUBMIT_TRIAGE_TOOL = {
     required: ["severity", "steps", "careTier", "reasoning", "outOfScope"]
   }
 };
-async function invokeFormatter(chunks, extractedContext) {
+async function invokeFormatter(chunks, extractedContext, language = "en") {
   const contextText = chunks.map((chunk, i) => `[Chunk ${i + 1}, score ${chunk.score.toFixed(2)}]
 ${chunk.text}`).join("\n\n---\n\n");
   const userMessage = `Retrieved medical protocol context:
@@ -206,7 +222,7 @@ Provide triage guidance based strictly on the retrieved context above.`;
   const payload = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 2048,
-    system: FORMATTER_SYSTEM_PROMPT,
+    system: getFormatterSystemPrompt(language),
     messages: [
       {
         role: "user",
@@ -367,7 +383,7 @@ async function handler(event) {
   }
   let parserResult;
   try {
-    parserResult = await invokeParser(request.query);
+    parserResult = await invokeParser(request.query, request.language || "en");
   } catch (err) {
     console.error("Parser error:", err);
     return errorResponse(503, "parser_unavailable");
@@ -399,7 +415,7 @@ async function handler(event) {
   }
   let formatterResult;
   try {
-    formatterResult = await invokeFormatter(chunks, parserResult.extractedContext);
+    formatterResult = await invokeFormatter(chunks, parserResult.extractedContext, request.language || "en");
   } catch (err) {
     console.error("Formatter error:", err);
     return errorResponse(503, "triage_unavailable");

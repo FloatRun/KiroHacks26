@@ -1,5 +1,7 @@
+import { useLanguage } from '../contexts/LanguageContext'
+
 interface ErrorStateProps {
-  onRetry: () => void
+  readonly onRetry: () => void
 }
 
 /**
@@ -8,6 +10,8 @@ interface ErrorStateProps {
  * Never shows raw status codes or stack traces.
  */
 export default function ErrorState({ onRetry }: ErrorStateProps) {
+  const { t } = useLanguage()
+  
   return (
     <main
       className="flex flex-col items-center gap-6 px-4 py-10 text-center"
@@ -26,10 +30,10 @@ export default function ErrorState({ onRetry }: ErrorStateProps) {
         className="max-w-sm space-y-2"
       >
         <h1 id="error-heading" className="text-xl font-bold text-gray-900">
-          Service temporarily unavailable
+          {t('error.title')}
         </h1>
         <p className="text-base leading-relaxed text-gray-600">
-          Please try again or call your local emergency number directly.
+          {t('error.unavailable')}
         </p>
       </div>
 
@@ -43,7 +47,7 @@ export default function ErrorState({ onRetry }: ErrorStateProps) {
             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
           ].join(' ')}
         >
-          Try again
+          {t('action.retry')}
         </button>
 
         <a
@@ -55,7 +59,7 @@ export default function ErrorState({ onRetry }: ErrorStateProps) {
             'focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2',
           ].join(' ')}
         >
-          Call 911
+          {t('emergency.call')}
         </a>
       </div>
     </main>

@@ -4,12 +4,13 @@ import CareTierAction from '../components/CareTierAction'
 import EmergencyNumberCallout from '../components/EmergencyNumberCallout'
 import FacilityMap from '../components/FacilityMap'
 import OutOfScopeRefusal from '../components/OutOfScopeRefusal'
+import { useLanguage } from '../contexts/LanguageContext'
 import type { TriageResponse } from '../types/api'
 
 interface TriageViewProps {
-  response: TriageResponse
-  userLocation: { lat: number; lng: number } | null
-  onReset: () => void
+  readonly response: TriageResponse
+  readonly userLocation: { lat: number; lng: number } | null
+  readonly onReset: () => void
 }
 
 export default function TriageView({
@@ -17,6 +18,7 @@ export default function TriageView({
   userLocation,
   onReset,
 }: TriageViewProps) {
+  const { t } = useLanguage()
   const { severity, steps, careTier, outOfScope, facilities } = response
 
   // Out-of-scope: render distinct refusal UI, not a triage card
@@ -33,7 +35,7 @@ export default function TriageView({
       aria-labelledby="triage-heading"
     >
       <h1 id="triage-heading" className="sr-only">
-        Triage Result
+        {t('triage.result')}
       </h1>
 
       {/* 1. Severity banner */}
@@ -59,7 +61,7 @@ export default function TriageView({
           role="note"
           className="rounded-xl bg-gray-50 px-5 py-4 text-sm text-gray-500 ring-1 ring-gray-200"
         >
-          Enable location to find nearby care facilities.
+          {t('map.enable_location')}
         </div>
       )}
 
@@ -74,7 +76,7 @@ export default function TriageView({
           'focus:ring-2 focus:ring-gray-400 focus:ring-offset-2',
         ].join(' ')}
       >
-        Start over
+        {t('action.start_over')}
       </button>
     </main>
   )

@@ -1,5 +1,7 @@
+import { useLanguage } from '../contexts/LanguageContext'
+
 interface OutOfScopeRefusalProps {
-  onReset: () => void
+  readonly onReset: () => void
 }
 
 /**
@@ -7,6 +9,8 @@ interface OutOfScopeRefusalProps {
  * clarification responses. Not a triage card.
  */
 export default function OutOfScopeRefusal({ onReset }: OutOfScopeRefusalProps) {
+  const { t } = useLanguage()
+  
   return (
     <main
       className="flex flex-col items-center gap-6 px-4 py-10 text-center"
@@ -21,17 +25,16 @@ export default function OutOfScopeRefusal({ onReset }: OutOfScopeRefusalProps) {
 
       <div className="max-w-sm space-y-2">
         <h1 id="oos-heading" className="text-xl font-bold text-gray-900">
-          We can't help with that
+          {t('out_of_scope.title')}
         </h1>
         <p className="text-base leading-relaxed text-gray-600">
-          FirstAid AI only covers medical emergencies and first-aid situations.
-          Your question doesn't match any of our supported scenarios.
+          {t('out_of_scope.message')}
         </p>
       </div>
 
       <div className="w-full max-w-sm rounded-xl bg-red-50 px-5 py-4 ring-1 ring-red-200">
         <p className="text-sm font-semibold text-red-800">
-          If this is a real emergency, call your local emergency number directly.
+          {t('out_of_scope.emergency')}
         </p>
         <a
           href="tel:911"
@@ -42,7 +45,7 @@ export default function OutOfScopeRefusal({ onReset }: OutOfScopeRefusalProps) {
             'focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
           ].join(' ')}
         >
-          Call 911
+          {t('emergency.call')}
         </a>
       </div>
 
@@ -56,7 +59,7 @@ export default function OutOfScopeRefusal({ onReset }: OutOfScopeRefusalProps) {
           'focus:ring-2 focus:ring-gray-400 focus:ring-offset-2',
         ].join(' ')}
       >
-        Start over
+        {t('action.start_over')}
       </button>
     </main>
   )

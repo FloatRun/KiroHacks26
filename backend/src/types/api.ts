@@ -12,6 +12,7 @@ export type ClarificationReason =
 
 export interface TriageRequest {
   query: string
+  language?: 'en' | 'es'
   location?: {
     lat: number
     lng: number

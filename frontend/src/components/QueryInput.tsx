@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface QueryInputProps {
-  onSubmit: (query: string) => void
-  disabled: boolean
+  readonly onSubmit: (query: string) => void
+  readonly disabled: boolean
 }
 
 const MAX_CHARS = 500
-const PLACEHOLDER = "Describe what happened — e.g., 'my son burned his hand on the stove'"
 
 export default function QueryInput({ onSubmit, disabled }: QueryInputProps) {
+  const { t } = useLanguage()
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -36,8 +37,8 @@ export default function QueryInput({ onSubmit, disabled }: QueryInputProps) {
 
   return (
     <div className="w-full">
-      <label htmlFor="query-input" className="sr-only">
-        Describe your emergency
+      <label htmlFor="query-input" className="block text-sm font-semibold text-gray-700 mb-3">
+        {t('landing.input.label')}
       </label>
       <div className="relative">
         <textarea
@@ -47,18 +48,18 @@ export default function QueryInput({ onSubmit, disabled }: QueryInputProps) {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder={PLACEHOLDER}
-          rows={3}
+          placeholder={t('landing.input.placeholder')}
+          rows={4}
           maxLength={MAX_CHARS + 1} // allow one over so we can show the error
           aria-describedby="char-count"
-          aria-label="Describe your emergency"
+          aria-label={t('landing.input.label')}
           className={[
-            'w-full resize-none rounded-xl border-2 bg-white px-4 py-3 text-base',
-            'leading-relaxed text-gray-900 placeholder-gray-400',
-            'focus:outline-none focus:ring-2 focus:ring-offset-1',
+            'w-full resize-none rounded-xl border-2 bg-white px-4 py-4 text-base',
+            'leading-relaxed text-gray-900 placeholder-gray-400 shadow-sm',
+            'focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200',
             isOverLimit
               ? 'border-red-500 focus:ring-red-400'
-              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-400',
+              : 'border-gray-200 focus:border-red-500 focus:ring-red-400',
             disabled ? 'cursor-not-allowed opacity-60' : '',
           ]
             .filter(Boolean)
@@ -66,7 +67,7 @@ export default function QueryInput({ onSubmit, disabled }: QueryInputProps) {
         />
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-3">
+      <div className="mt-3 flex items-center justify-between gap-3">
         <span
           id="char-count"
           aria-live="polite"
@@ -77,24 +78,34 @@ export default function QueryInput({ onSubmit, disabled }: QueryInputProps) {
           ].join(' ')}
         >
           {isOverLimit
-            ? `${Math.abs(remaining)} characters over limit`
-            : `${remaining} characters remaining`}
+            ? t('input.chars.over').replace('{count}', Math.abs(remaining).toString())
+            : t('input.chars.remaining').replace('{count}', remaining.toString())}
         </span>
 
         <button
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit}
-          aria-label="Submit your description for triage"
+          aria-label={t('landing.input.label')}
           className={[
-            'min-h-[44px] min-w-[44px] rounded-xl px-6 py-2.5 text-base font-semibold',
-            'transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'min-h-[48px] min-w-[120px] rounded-xl px-8 py-3 text-base font-semibold',
+            'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-md',
             canSubmit
-              ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
-              : 'cursor-not-allowed bg-gray-200 text-gray-400',
+              ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 hover:shadow-lg transform hover:-translate-y-0.5'
+              : 'cursor-not-allowed bg-gray-200 text-gray-400 shadow-sm',
           ].join(' ')}
         >
-          {disabled ? 'Analyzing…' : 'Get Help'}
+          {disabled ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+              {t('landing.button.analyzing')}
+            </span>
+          ) : (
+            t('landing.button')
+          )}
         </button>
       </div>
     </div>

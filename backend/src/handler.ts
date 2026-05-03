@@ -105,7 +105,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   // 3. Stage 1: Parser
   let parserResult
   try {
-    parserResult = await invokeParser(request.query)
+    parserResult = await invokeParser(request.query, request.language || 'en')
   } catch (err) {
     console.error('Parser error:', err)
     return errorResponse(503, 'parser_unavailable')
@@ -145,7 +145,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
   // 7. Stage 3: Formatter
   let formatterResult
   try {
-    formatterResult = await invokeFormatter(chunks, parserResult.extractedContext)
+    formatterResult = await invokeFormatter(chunks, parserResult.extractedContext, request.language || 'en')
   } catch (err) {
     console.error('Formatter error:', err)
     return errorResponse(503, 'triage_unavailable')

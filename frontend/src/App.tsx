@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { postTriage, ApiError } from './api/triage'
 import { useGeolocation } from './hooks/useGeolocation'
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
+import { detectLanguage } from './utils/languageDetector'
 import LandingView from './views/LandingView'
 import TriageView from './views/TriageView'
 import ClarificationView from './components/ClarificationView'
@@ -8,6 +10,7 @@ import OutOfScopeRefusal from './components/OutOfScopeRefusal'
 import LoadingState from './components/LoadingState'
 import ErrorState from './components/ErrorState'
 import DisclaimerFooter from './components/DisclaimerFooter'
+import LanguageSelector from './components/LanguageSelector'
 import type { TriageResponse, ClarificationResponse } from './types/api'
 
 /**
@@ -26,7 +29,8 @@ type ViewState =
   | { kind: 'out-of-scope' }
   | { kind: 'error'; onRetry: () => void }
 
-export default function App() {
+function AppContent() {
+  const { t, language, setLanguage } = useLanguage()
   const geo = useGeolocation()
   const [view, setView] = useState<ViewState>({ kind: 'landing' })
   // Track how many clarification round-trips have occurred (max 1)
@@ -44,8 +48,19 @@ export default function App() {
   const submit = async (query: string) => {
     setView({ kind: 'loading' })
 
+    // Auto-detect language from the query and update context if needed
+    const detectedLanguage = detectLanguage(query)
+    if (detectedLanguage !== 'unknown' && detectedLanguage !== language) {
+      console.log(`Auto-detected language: ${detectedLanguage} (was: ${language})`)
+      setLanguage(detectedLanguage)
+    }
+
+    // Use the detected language or current language setting
+    const requestLanguage = detectedLanguage !== 'unknown' ? detectedLanguage : language
+
     const request = {
       query,
+      language: requestLanguage,
       ...(geo.location ? { location: geo.location } : {}),
     }
 
@@ -97,12 +112,37 @@ export default function App() {
   const isLoading = view.kind === 'loading'
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-50 via-white to-red-50">
       {/* App header */}
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-lg items-center gap-2">
-          <span aria-hidden="true" className="text-xl">🩹</span>
-          <span className="text-lg font-bold text-gray-900">FirstAid AI</span>
+      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-4 shadow-sm">
+        <div className="mx-auto flex max-w-lg items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* Red Cross Logo */}
+            <div 
+              aria-hidden="true" 
+              className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 shadow-md"
+            >
+              <svg 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                className="text-white"
+              >
+                <path 
+                  d="M13 3h-2v8H3v2h8v8h2v-8h8v-2h-8V3z" 
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xl font-bold text-gray-900">{t('app.title')}</span>
+              <p className="text-xs text-gray-600 font-medium">{t('app.subtitle')}</p>
+            </div>
+          </div>
+          
+          {/* Language Selector */}
+          <LanguageSelector />
         </div>
       </header>
 
@@ -142,5 +182,13 @@ export default function App() {
 
       <DisclaimerFooter />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   )
 }

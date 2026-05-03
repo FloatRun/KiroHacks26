@@ -1,13 +1,8 @@
 import type { Severity } from '../types/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface CareTierActionProps {
-  careTier: Severity
-}
-
-const labels: Record<Severity, string> = {
-  self_care: 'Self-care at home',
-  urgent_care: 'Seek urgent care within 1 hour',
-  emergency: 'Call emergency services now',
+  readonly careTier: Severity
 }
 
 const styles: Record<Severity, string> = {
@@ -17,16 +12,19 @@ const styles: Record<Severity, string> = {
 }
 
 export default function CareTierAction({ careTier }: CareTierActionProps) {
+  const { t } = useLanguage()
+  const label = t(`care.${careTier}`)
+  
   return (
     <div
       role="note"
-      aria-label={`Recommended action: ${labels[careTier]}`}
+      aria-label={`${t('care.recommended')}: ${label}`}
       className={`rounded-xl px-5 py-4 ring-1 ${styles[careTier]}`}
     >
       <p className="text-xs font-semibold uppercase tracking-widest opacity-70">
-        Recommended Action
+        {t('care.recommended')}
       </p>
-      <p className="mt-0.5 text-xl font-bold">{labels[careTier]}</p>
+      <p className="mt-0.5 text-xl font-bold">{label}</p>
     </div>
   )
 }

@@ -1,31 +1,8 @@
 import type { Severity } from '../types/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface SeverityBannerProps {
-  severity: Severity
-}
-
-const config: Record<
-  Severity,
-  { bg: string; label: string; icon: string; ariaLabel: string }
-> = {
-  self_care: {
-    bg: 'bg-green-500',
-    label: 'Self-Care',
-    icon: '✓',
-    ariaLabel: 'Severity: Self-care — manageable at home',
-  },
-  urgent_care: {
-    bg: 'bg-yellow-400',
-    label: 'Urgent Care',
-    icon: '!',
-    ariaLabel: 'Severity: Urgent care — needs attention soon',
-  },
-  emergency: {
-    bg: 'bg-red-600',
-    label: 'Emergency',
-    icon: '⚠',
-    ariaLabel: 'Severity: Emergency — call 911 immediately',
-  },
+  readonly severity: Severity
 }
 
 /**
@@ -35,31 +12,53 @@ const config: Record<
  * Severity is communicated by BOTH color AND text label (never color alone).
  */
 export default function SeverityBanner({ severity }: SeverityBannerProps) {
-  const { bg, label, icon, ariaLabel } = config[severity]
+  const { t } = useLanguage()
+  
+  const config: Record<Severity, { bg: string; gradient: string; icon: string }> = {
+    self_care: {
+      bg: 'bg-green-500',
+      gradient: 'bg-gradient-to-r from-green-500 to-green-600',
+      icon: '✓',
+    },
+    urgent_care: {
+      bg: 'bg-yellow-400',
+      gradient: 'bg-gradient-to-r from-yellow-400 to-orange-500',
+      icon: '!',
+    },
+    emergency: {
+      bg: 'bg-red-600',
+      gradient: 'bg-gradient-to-r from-red-600 to-red-700',
+      icon: '⚠',
+    },
+  }
+
+  const { gradient, icon } = config[severity]
+  const label = t(`severity.${severity}`)
+  const ariaLabel = `${t('severity.level')}: ${label}`
 
   // yellow-400 and green-500 backgrounds need dark text to meet WCAG AAA contrast
-  const textColor = severity === 'emergency' ? 'text-white' : severity === 'urgent_care' ? 'text-yellow-900' : 'text-green-950'
+  const textColor = severity === 'emergency' ? 'text-white' : severity === 'urgent_care' ? 'text-yellow-900' : 'text-white'
 
   return (
     <div
       role="status"
       aria-label={ariaLabel}
-      className={`${bg} ${textColor} flex items-center gap-3 rounded-xl px-5 py-4`}
+      className={`${gradient} ${textColor} flex items-center gap-4 rounded-2xl px-6 py-5 shadow-lg border-2 border-white/20`}
     >
       <span
         aria-hidden="true"
-        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xl font-bold ${
-          severity === 'emergency' ? 'bg-white/20' : 'bg-black/10'
+        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl font-bold shadow-md ${
+          severity === 'emergency' ? 'bg-white/20 backdrop-blur-sm' : 'bg-black/10'
         }`}
       >
         {icon}
       </span>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest opacity-80">
-          Severity Level
+      <div className="flex-1">
+        <p className="text-xs font-bold uppercase tracking-widest opacity-90 mb-1">
+          {t('severity.level')}
         </p>
         {/* Minimum 24px font size per requirements */}
-        <p className="text-[1.5rem] font-bold leading-tight">{label}</p>
+        <p className="text-[1.75rem] font-extrabold leading-tight">{label}</p>
       </div>
     </div>
   )

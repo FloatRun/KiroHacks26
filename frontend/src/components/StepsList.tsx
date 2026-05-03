@@ -1,5 +1,7 @@
+import { useLanguage } from '../contexts/LanguageContext'
+
 interface StepsListProps {
-  steps: string[]
+  readonly steps: string[]
 }
 
 /**
@@ -8,14 +10,16 @@ interface StepsListProps {
  * Line height is 1.5× minimum per requirements.
  */
 export default function StepsList({ steps }: StepsListProps) {
+  const { t } = useLanguage()
+  
   if (steps.length === 0) return null
 
   return (
     <section aria-labelledby="steps-heading">
       <h2 id="steps-heading" className="mb-3 text-lg font-semibold text-gray-800">
-        First Aid Steps
+        {t('steps.title')}
       </h2>
-      <ol className="space-y-3" aria-label="First aid steps">
+      <ol className="space-y-3" aria-label={t('steps.title')}>
         {steps.map((step, index) => (
           <li
             key={index}
