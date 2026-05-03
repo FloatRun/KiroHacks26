@@ -1,4 +1,4 @@
-// Shared TypeScript types — mirrors frontend/src/types/api.ts.
+// Shared TypeScript types — mirrors frontend/src/types/api.ts
 // Keep in sync with frontend types.
 
 export type Severity = 'self_care' | 'urgent_care' | 'emergency'

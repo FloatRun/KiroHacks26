@@ -1,87 +1,105 @@
-import type { Severity, Facility } from './types/api.js'
+import type { Facility, Severity } from './types/api.js'
 
-interface PlacesNearbyResult {
+interface PlacesResult {
   name: string
   vicinity: string
-  geometry: { location: { lat: number; lng: number } }
+  geometry: {
+    location: {
+      lat: number
+      lng: number
+    }
+  }
+  opening_hours?: {
+    open_now: boolean
+  }
   place_id: string
-  opening_hours?: { open_now?: boolean }
 }
 
 /**
- * Compute Haversine distance between two lat/lng points in meters.
+ * Haversine distance in meters between two lat/lng points.
  */
-function haversineMeters(
-  lat1: number, lng1: number,
-  lat2: number, lng2: number,
+function haversineDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
 ): number {
-  const R = 6_371_000 // Earth radius in meters
-  const toRad = (deg: number) => (deg * Math.PI) / 180
-  const dLat = toRad(lat2 - lat1)
-  const dLng = toRad(lng2 - lng1)
+  const R = 6371e3 // Earth radius in meters
+  const φ1 = (lat1 * Math.PI) / 180
+  const φ2 = (lat2 * Math.PI) / 180
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180
+
   const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  return R * c
 }
 
 /**
- * Find nearby medical facilities using Google Places Nearby Search.
+ * Calls Google Places Nearby Search API.
+ * Maps careTier to search parameters:
+ *   - urgent_care → keyword "urgent care", radius 10km
+ *   - emergency → type "hospital", radius 15km
  *
- * - urgent_care → keyword "urgent care", radius 10 km
- * - emergency   → type "hospital", radius 15 km
- *
- * Returns top 3–5 results sorted by distance ascending.
- * On any failure, returns an empty array (non-fatal).
+ * Returns top 3–5 facilities sorted by distance, filtered to open_now.
  */
 export async function findNearbyFacilities(
   careTier: Severity,
   location: { lat: number; lng: number },
   apiKey: string,
 ): Promise<Facility[]> {
-  const baseUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
+  if (careTier === 'self_care') {
+    return []
+  }
 
+  const isEmergency = careTier === 'emergency'
+  const radius = isEmergency ? 15000 : 10000
   const params = new URLSearchParams({
     location: `${location.lat},${location.lng}`,
+    radius: radius.toString(),
     key: apiKey,
   })
 
-  if (careTier === 'urgent_care') {
-    params.set('keyword', 'urgent care')
-    params.set('radius', '10000')
+  if (isEmergency) {
+    params.append('type', 'hospital')
   } else {
-    // emergency
-    params.set('type', 'hospital')
-    params.set('radius', '15000')
+    params.append('keyword', 'urgent care')
   }
 
-  const url = `${baseUrl}?${params.toString()}`
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${params}`
+
   const response = await fetch(url)
-
   if (!response.ok) {
-    console.error(`Places API HTTP error: ${response.status}`)
-    return []
+    throw new Error(`Places API error: ${response.status}`)
   }
 
-  const data = (await response.json()) as {
-    status: string
-    results: PlacesNearbyResult[]
-  }
-
+  const data = await response.json()
   if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-    console.error(`Places API status: ${data.status}`)
+    throw new Error(`Places API status: ${data.status}`)
+  }
+
+  if (!data.results || data.results.length === 0) {
     return []
   }
 
+  // Filter to open_now, compute distance, sort, take top 5
   const facilities: Facility[] = data.results
-    .map((place) => ({
+    .filter((place: PlacesResult) => place.opening_hours?.open_now !== false)
+    .map((place: PlacesResult) => ({
       name: place.name,
-      address: place.vicinity ?? '',
-      distanceMeters: haversineMeters(
-        location.lat, location.lng,
-        place.geometry.location.lat, place.geometry.location.lng,
+      address: place.vicinity,
+      distanceMeters: Math.round(
+        haversineDistance(
+          location.lat,
+          location.lng,
+          place.geometry.location.lat,
+          place.geometry.location.lng,
+        ),
       ),
-      openNow: place.opening_hours?.open_now ?? false,
+      openNow: place.opening_hours?.open_now ?? true,
       lat: place.geometry.location.lat,
       lng: place.geometry.location.lng,
       placeId: place.place_id,

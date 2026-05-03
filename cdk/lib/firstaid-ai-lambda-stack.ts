@@ -36,12 +36,25 @@ export class FirstAidAiLambdaStack extends cdk.Stack {
       resources: ['*'],
     }));
 
+    // AWS Marketplace permissions for Claude models
+    lambdaRole.addToPolicy(new iam.PolicyStatement({
+      sid: 'MarketplaceAccess',
+      actions: [
+        'aws-marketplace:ViewSubscriptions',
+        'aws-marketplace:Subscribe'
+      ],
+      resources: ['*'],
+    }));
+
     // Bedrock KB Retrieve permission
     lambdaRole.addToPolicy(new iam.PolicyStatement({
       sid: 'BedrockKBRetrieve',
-      actions: ['bedrock-agent-runtime:Retrieve'],
+      actions: [
+        'bedrock-agent-runtime:Retrieve',
+        'bedrock:Retrieve'
+      ],
       resources: [
-        `arn:aws:bedrock:${this.region}:${this.account}:knowledge-base/${props.knowledgeBaseId}`,
+        `arn:aws:bedrock:${this.region}:${this.account}:knowledge-base/*`,
       ],
     }));
 
@@ -59,7 +72,7 @@ export class FirstAidAiLambdaStack extends cdk.Stack {
       functionName: 'firstaid-ai-triage',
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler.handler',
-      code: lambda.Code.fromAsset('../lambda_backend/dist/handler.zip'),
+      code: lambda.Code.fromAsset('../backend/dist/handler.zip'),
       memorySize: 512,
       timeout: Duration.seconds(15),
       architecture: lambda.Architecture.X86_64,
@@ -67,7 +80,7 @@ export class FirstAidAiLambdaStack extends cdk.Stack {
       environment: {
         KNOWLEDGE_BASE_ID: props.knowledgeBaseId,
         CLAUDE_MODEL_ID: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-        SIMILARITY_THRESHOLD: '0.5',
+        SIMILARITY_THRESHOLD: '0.1',
         PLACES_API_KEY_PARAM: placesApiKeyParamName,
         CLOUDFRONT_ORIGIN: '*', // Will be updated after CloudFront is deployed
       },

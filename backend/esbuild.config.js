@@ -1,24 +1,36 @@
-import { build } from 'esbuild'
+import esbuild from 'esbuild'
+import { mkdir, rm } from 'fs/promises'
 import { execSync } from 'child_process'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+async function build() {
+  // Clean dist
+  await rm('dist', { recursive: true, force: true })
+  await mkdir('dist', { recursive: true })
 
-await build({
-  entryPoints: ['src/handler.ts'],
-  bundle: true,
-  platform: 'node',
-  target: 'node20',
-  outfile: 'dist/handler.js',
-  format: 'esm',
-  sourcemap: true,
-  minify: false,
-  external: ['@aws-sdk/*'],
+  // Bundle with esbuild — CommonJS format for Lambda compatibility
+  await esbuild.build({
+    entryPoints: ['src/handler.ts'],
+    bundle: true,
+    platform: 'node',
+    target: 'node20',
+    format: 'cjs',
+    outfile: 'dist/handler.js',
+    external: [
+      '@aws-sdk/client-bedrock-runtime',
+      '@aws-sdk/client-bedrock-agent-runtime',
+      '@aws-sdk/client-ssm',
+    ],
+  })
+
+  console.log('✓ Bundle created: dist/handler.js')
+
+  // Create zip for Lambda deployment using native zip command
+  execSync('cd dist && zip handler.zip handler.js', { stdio: 'inherit' })
+
+  console.log('✓ Deployment package created: dist/handler.zip')
+}
+
+build().catch((err) => {
+  console.error(err)
+  process.exit(1)
 })
-
-// Zip for Lambda deployment
-const distDir = resolve(__dirname, 'dist')
-execSync(`cd ${distDir} && zip -r handler.zip handler.js handler.js.map`)
-
-console.log('Build complete → dist/handler.js + dist/handler.zip')

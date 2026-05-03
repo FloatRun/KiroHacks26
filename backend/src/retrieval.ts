@@ -3,57 +3,43 @@ import {
   RetrieveCommand,
 } from '@aws-sdk/client-bedrock-agent-runtime'
 
-const client = new BedrockAgentRuntimeClient({})
+const client = new BedrockAgentRuntimeClient({ region: process.env.AWS_REGION })
+const KNOWLEDGE_BASE_ID = process.env.KNOWLEDGE_BASE_ID!
+const TOP_K = 5
 
 export interface RetrievalChunk {
   text: string
   score: number
-  sourceUri?: string
-}
-
-export interface RetrievalResult {
-  chunks: RetrievalChunk[]
-  maxScore: number
 }
 
 /**
- * Stage 2 — Retrieve relevant chunks from the Bedrock Knowledge Base.
- *
- * Returns the top-K chunks with their similarity scores.
- * The caller is responsible for the similarity threshold gate.
+ * Stage 2: Knowledge Base Retrieval
+ * Queries the Bedrock Knowledge Base with the normalized query.
+ * Returns top K chunks with similarity scores.
  */
 export async function retrieveFromKnowledgeBase(
   normalizedQuery: string,
-  topK = 5,
-): Promise<RetrievalResult> {
-  const knowledgeBaseId = process.env.KNOWLEDGE_BASE_ID
-  if (!knowledgeBaseId) {
-    throw new Error('KNOWLEDGE_BASE_ID environment variable is not set')
-  }
-
+): Promise<RetrievalChunk[]> {
   const command = new RetrieveCommand({
-    knowledgeBaseId,
-    retrievalQuery: { text: normalizedQuery },
+    knowledgeBaseId: KNOWLEDGE_BASE_ID,
+    retrievalQuery: {
+      text: normalizedQuery,
+    },
     retrievalConfiguration: {
       vectorSearchConfiguration: {
-        numberOfResults: topK,
+        numberOfResults: TOP_K,
       },
     },
   })
 
   const response = await client.send(command)
 
-  const chunks: RetrievalChunk[] = (response.retrievalResults ?? []).map((result) => ({
-    text: result.content?.text ?? '',
-    score: result.score ?? 0,
-    sourceUri: result.location?.s3Location?.uri
-      ?? result.location?.webLocation?.url
-      ?? undefined,
+  if (!response.retrievalResults || response.retrievalResults.length === 0) {
+    return []
+  }
+
+  return response.retrievalResults.map((result) => ({
+    text: result.content?.text || '',
+    score: result.score || 0,
   }))
-
-  const maxScore = chunks.length > 0
-    ? Math.max(...chunks.map((c) => c.score))
-    : 0
-
-  return { chunks, maxScore }
 }

@@ -1,76 +1,34 @@
-import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/ssm.ts
-import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
-var ssm = new SSMClient({});
-var cachedApiKey;
-async function getPlacesApiKey() {
-  if (cachedApiKey) return cachedApiKey;
-  const paramName = process.env.PLACES_API_KEY_PARAM ?? "/firstaid-ai/places-api-key";
-  const result = await ssm.send(
-    new GetParameterCommand({ Name: paramName, WithDecryption: true })
-  );
-  const value = result.Parameter?.Value;
-  if (!value) throw new Error(`SSM parameter ${paramName} not found or empty`);
-  cachedApiKey = value;
-  return cachedApiKey;
-}
+// src/handler.ts
+var handler_exports = {};
+__export(handler_exports, {
+  handler: () => handler
+});
+module.exports = __toCommonJS(handler_exports);
 
 // src/parser.ts
-import {
-  BedrockRuntimeClient,
-  InvokeModelCommand
-} from "@aws-sdk/client-bedrock-runtime";
-var bedrock = new BedrockRuntimeClient({});
-async function invokeParser(query) {
-  const modelId = process.env.CLAUDE_MODEL_ID ?? "anthropic.claude-sonnet-4-20250514-v1:0";
-  const tool = {
-    name: "parse_user_input",
-    description: "Parse the user's described situation into either a normalized retrieval query or a clarification request.",
-    input_schema: {
-      type: "object",
-      properties: {
-        action: {
-          type: "string",
-          enum: ["retrieve", "clarify"]
-        },
-        normalizedQuery: {
-          type: "string",
-          description: "A concise, retrieval-optimized phrasing of the user's situation. Required when action === 'retrieve'."
-        },
-        extractedContext: {
-          type: "object",
-          description: "Structured context extracted from input. Required when action === 'retrieve'.",
-          properties: {
-            scenario: {
-              type: "string",
-              description: "Primary scenario tag, e.g., 'burn', 'cut', 'allergic_reaction'"
-            },
-            severity_signals: {
-              type: "array",
-              items: { type: "string" },
-              description: "Phrases indicating severity"
-            },
-            subject: {
-              type: "string",
-              description: "Who the situation is about, e.g., 'self', 'child', 'adult'"
-            }
-          }
-        },
-        clarificationQuestion: {
-          type: "string",
-          description: "A single short question to ask the user. Required when action === 'clarify'. Maximum 15 words."
-        },
-        clarificationReason: {
-          type: "string",
-          enum: ["too_vague", "missing_severity", "missing_subject", "non_medical", "ambiguous_scenario"],
-          description: "Why clarification is needed. Required when action === 'clarify'."
-        }
-      },
-      required: ["action"]
-    }
-  };
-  const systemPrompt = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
+var import_client_bedrock_runtime = require("@aws-sdk/client-bedrock-runtime");
+var client = new import_client_bedrock_runtime.BedrockRuntimeClient({ region: process.env.AWS_REGION });
+var MODEL_ID = process.env.CLAUDE_MODEL_ID || "us.anthropic.claude-sonnet-4-20250514-v1:0";
+var PARSER_SYSTEM_PROMPT = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
 
 Rules:
 - Default to action "retrieve" when the scenario and at least one severity signal are reasonably inferable from the input.
@@ -79,114 +37,119 @@ Rules:
 - Clarification questions must be a single sentence, under 15 words, asking only for the single most diagnostically important missing piece of information.
 - Bias toward retrieve. When in doubt, retrieve.
 - Never produce prose. Only call the tool.`;
-  const body = JSON.stringify({
+var PARSE_USER_INPUT_TOOL = {
+  name: "parse_user_input",
+  description: "Parse the user's described situation into either a normalized retrieval query or a clarification request.",
+  input_schema: {
+    type: "object",
+    properties: {
+      action: {
+        type: "string",
+        enum: ["retrieve", "clarify"]
+      },
+      normalizedQuery: {
+        type: "string",
+        description: "A concise, retrieval-optimized phrasing of the user's situation. Required when action === 'retrieve'."
+      },
+      extractedContext: {
+        type: "object",
+        description: "Structured context extracted from input. Required when action === 'retrieve'.",
+        properties: {
+          scenario: {
+            type: "string",
+            description: "Primary scenario tag, e.g., 'burn', 'cut', 'allergic_reaction'"
+          },
+          severity_signals: {
+            type: "array",
+            items: { type: "string" },
+            description: "Phrases indicating severity"
+          },
+          subject: {
+            type: "string",
+            description: "Who the situation is about, e.g., 'self', 'child', 'adult'"
+          }
+        }
+      },
+      clarificationQuestion: {
+        type: "string",
+        description: "A single short question to ask the user. Required when action === 'clarify'. Maximum 15 words."
+      },
+      clarificationReason: {
+        type: "string",
+        enum: [
+          "too_vague",
+          "missing_severity",
+          "missing_subject",
+          "non_medical",
+          "ambiguous_scenario"
+        ],
+        description: "Why clarification is needed. Required when action === 'clarify'."
+      }
+    },
+    required: ["action"]
+  }
+};
+async function invokeParser(query) {
+  const payload = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 1024,
-    system: systemPrompt,
-    messages: [{ role: "user", content: query }],
-    tools: [tool],
+    system: PARSER_SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: query
+      }
+    ],
+    tools: [PARSE_USER_INPUT_TOOL],
     tool_choice: { type: "tool", name: "parse_user_input" }
-  });
-  const command = new InvokeModelCommand({
-    modelId,
+  };
+  const command = new import_client_bedrock_runtime.InvokeModelCommand({
+    modelId: MODEL_ID,
     contentType: "application/json",
     accept: "application/json",
-    body: new TextEncoder().encode(body)
+    body: JSON.stringify(payload)
   });
-  const response = await bedrock.send(command);
+  const response = await client.send(command);
   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-  const toolUse = responseBody.content?.find(
-    (block) => block.type === "tool_use"
-  );
-  if (!toolUse?.input) {
-    throw new Error("Parser did not return a tool_use block");
+  const toolUse = responseBody.content?.find((block) => block.type === "tool_use");
+  if (!toolUse || toolUse.name !== "parse_user_input") {
+    throw new Error("Parser did not return expected tool use");
   }
-  const input = toolUse.input;
-  if (input.action === "clarify") {
-    return {
-      action: "clarify",
-      clarificationQuestion: input.clarificationQuestion ?? "Can you describe what happened in more detail?",
-      clarificationReason: input.clarificationReason ?? "too_vague"
-    };
-  }
-  return {
-    action: "retrieve",
-    normalizedQuery: input.normalizedQuery ?? query,
-    extractedContext: input.extractedContext ?? {}
-  };
+  return toolUse.input;
 }
 
 // src/retrieval.ts
-import {
-  BedrockAgentRuntimeClient,
-  RetrieveCommand
-} from "@aws-sdk/client-bedrock-agent-runtime";
-var client = new BedrockAgentRuntimeClient({});
-async function retrieveFromKnowledgeBase(normalizedQuery, topK = 5) {
-  const knowledgeBaseId = process.env.KNOWLEDGE_BASE_ID;
-  if (!knowledgeBaseId) {
-    throw new Error("KNOWLEDGE_BASE_ID environment variable is not set");
-  }
-  const command = new RetrieveCommand({
-    knowledgeBaseId,
-    retrievalQuery: { text: normalizedQuery },
+var import_client_bedrock_agent_runtime = require("@aws-sdk/client-bedrock-agent-runtime");
+var client2 = new import_client_bedrock_agent_runtime.BedrockAgentRuntimeClient({ region: process.env.AWS_REGION });
+var KNOWLEDGE_BASE_ID = process.env.KNOWLEDGE_BASE_ID;
+var TOP_K = 5;
+async function retrieveFromKnowledgeBase(normalizedQuery) {
+  const command = new import_client_bedrock_agent_runtime.RetrieveCommand({
+    knowledgeBaseId: KNOWLEDGE_BASE_ID,
+    retrievalQuery: {
+      text: normalizedQuery
+    },
     retrievalConfiguration: {
       vectorSearchConfiguration: {
-        numberOfResults: topK
+        numberOfResults: TOP_K
       }
     }
   });
-  const response = await client.send(command);
-  const chunks = (response.retrievalResults ?? []).map((result) => ({
-    text: result.content?.text ?? "",
-    score: result.score ?? 0,
-    sourceUri: result.location?.s3Location?.uri ?? result.location?.webLocation?.url ?? void 0
+  const response = await client2.send(command);
+  if (!response.retrievalResults || response.retrievalResults.length === 0) {
+    return [];
+  }
+  return response.retrievalResults.map((result) => ({
+    text: result.content?.text || "",
+    score: result.score || 0
   }));
-  const maxScore = chunks.length > 0 ? Math.max(...chunks.map((c) => c.score)) : 0;
-  return { chunks, maxScore };
 }
 
 // src/formatter.ts
-import {
-  BedrockRuntimeClient as BedrockRuntimeClient2,
-  InvokeModelCommand as InvokeModelCommand2
-} from "@aws-sdk/client-bedrock-runtime";
-var bedrock2 = new BedrockRuntimeClient2({});
-async function invokeFormatter(chunks, extractedContext) {
-  const modelId = process.env.CLAUDE_MODEL_ID ?? "anthropic.claude-sonnet-4-20250514-v1:0";
-  const tool = {
-    name: "submit_triage",
-    description: "Submit the final triage card based strictly on the retrieved medical protocol context.",
-    input_schema: {
-      type: "object",
-      properties: {
-        severity: {
-          type: "string",
-          enum: ["self_care", "urgent_care", "emergency"]
-        },
-        steps: {
-          type: "array",
-          items: { type: "string", maxLength: 120 },
-          minItems: 3,
-          maxItems: 5,
-          description: "Numbered first aid steps, each under 120 characters, written in clear imperative voice for a panicked layperson."
-        },
-        careTier: {
-          type: "string",
-          enum: ["self_care", "urgent_care", "emergency"]
-        },
-        reasoning: {
-          type: "string",
-          description: "Brief internal rationale for severity assignment. Logged server-side only."
-        },
-        outOfScope: {
-          type: "boolean"
-        }
-      },
-      required: ["severity", "steps", "careTier", "reasoning", "outOfScope"]
-    }
-  };
-  const systemPrompt = `You are a medical triage formatter. Your only job is to call the submit_triage tool.
+var import_client_bedrock_runtime2 = require("@aws-sdk/client-bedrock-runtime");
+var client3 = new import_client_bedrock_runtime2.BedrockRuntimeClient({ region: process.env.AWS_REGION });
+var MODEL_ID2 = process.env.CLAUDE_MODEL_ID || "us.anthropic.claude-sonnet-4-20250514-v1:0";
+var FORMATTER_SYSTEM_PROMPT = `You are a medical triage formatter. Your only job is to call the submit_triage tool.
 
 Rules:
 - Answer ONLY from the provided retrieval context. Do not use your general medical knowledge.
@@ -195,94 +158,130 @@ Rules:
 - If the retrieval context is thin, ambiguous, or does not clearly address the scenario, set outOfScope to true.
 - Bias toward over-escalation on severity. When uncertain between urgent_care and emergency, choose emergency.
 - Never produce prose. Only call the tool.`;
-  const contextBlock = chunks.map((c, i) => `[Source ${i + 1} (score: ${c.score.toFixed(3)})]:
-${c.text}`).join("\n\n");
-  const contextSummary = [
-    extractedContext.scenario && `Scenario: ${extractedContext.scenario}`,
-    extractedContext.subject && `Subject: ${extractedContext.subject}`,
-    extractedContext.severity_signals?.length && `Severity signals: ${extractedContext.severity_signals.join(", ")}`
-  ].filter(Boolean).join("\n");
+var SUBMIT_TRIAGE_TOOL = {
+  name: "submit_triage",
+  description: "Submit the final triage card based strictly on the retrieved medical protocol context.",
+  input_schema: {
+    type: "object",
+    properties: {
+      severity: {
+        type: "string",
+        enum: ["self_care", "urgent_care", "emergency"]
+      },
+      steps: {
+        type: "array",
+        items: { type: "string", maxLength: 120 },
+        minItems: 3,
+        maxItems: 5,
+        description: "Numbered first aid steps, each under 120 characters, written in clear imperative voice for a panicked layperson."
+      },
+      careTier: {
+        type: "string",
+        enum: ["self_care", "urgent_care", "emergency"]
+      },
+      reasoning: {
+        type: "string",
+        description: "Brief internal rationale for severity assignment. Logged server-side only."
+      },
+      outOfScope: {
+        type: "boolean"
+      }
+    },
+    required: ["severity", "steps", "careTier", "reasoning", "outOfScope"]
+  }
+};
+async function invokeFormatter(chunks, extractedContext) {
+  const contextText = chunks.map((chunk, i) => `[Chunk ${i + 1}, score ${chunk.score.toFixed(2)}]
+${chunk.text}`).join("\n\n---\n\n");
   const userMessage = `Retrieved medical protocol context:
 
-${contextBlock}
+${contextText}
 
-${contextSummary ? `Extracted context:
-${contextSummary}` : ""}`;
-  const body = JSON.stringify({
+Extracted context from user query:
+Scenario: ${extractedContext.scenario}
+Severity signals: ${extractedContext.severity_signals.join(", ")}
+Subject: ${extractedContext.subject}
+
+Provide triage guidance based strictly on the retrieved context above.`;
+  const payload = {
     anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }],
-    tools: [tool],
+    max_tokens: 2048,
+    system: FORMATTER_SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: userMessage
+      }
+    ],
+    tools: [SUBMIT_TRIAGE_TOOL],
     tool_choice: { type: "tool", name: "submit_triage" }
-  });
-  const command = new InvokeModelCommand2({
-    modelId,
+  };
+  const command = new import_client_bedrock_runtime2.InvokeModelCommand({
+    modelId: MODEL_ID2,
     contentType: "application/json",
     accept: "application/json",
-    body: new TextEncoder().encode(body)
+    body: JSON.stringify(payload)
   });
-  const response = await bedrock2.send(command);
+  const response = await client3.send(command);
   const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-  const toolUse = responseBody.content?.find(
-    (block) => block.type === "tool_use"
-  );
-  if (!toolUse?.input) {
-    throw new Error("Formatter did not return a tool_use block");
+  const toolUse = responseBody.content?.find((block) => block.type === "tool_use");
+  if (!toolUse || toolUse.name !== "submit_triage") {
+    throw new Error("Formatter did not return expected tool use");
   }
-  const input = toolUse.input;
-  return {
-    severity: input.severity ?? "emergency",
-    steps: input.steps ?? [],
-    careTier: input.careTier ?? "emergency",
-    reasoning: input.reasoning ?? "",
-    outOfScope: input.outOfScope ?? false
-  };
+  return toolUse.input;
 }
 
 // src/places.ts
-function haversineMeters(lat1, lng1, lat2, lng2) {
+function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371e3;
-  const toRad = (deg) => deg * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const \u03C61 = lat1 * Math.PI / 180;
+  const \u03C62 = lat2 * Math.PI / 180;
+  const \u0394\u03C6 = (lat2 - lat1) * Math.PI / 180;
+  const \u0394\u03BB = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(\u0394\u03C6 / 2) * Math.sin(\u0394\u03C6 / 2) + Math.cos(\u03C61) * Math.cos(\u03C62) * Math.sin(\u0394\u03BB / 2) * Math.sin(\u0394\u03BB / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 async function findNearbyFacilities(careTier, location, apiKey) {
-  const baseUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
+  if (careTier === "self_care") {
+    return [];
+  }
+  const isEmergency = careTier === "emergency";
+  const radius = isEmergency ? 15e3 : 1e4;
   const params = new URLSearchParams({
     location: `${location.lat},${location.lng}`,
+    radius: radius.toString(),
     key: apiKey
   });
-  if (careTier === "urgent_care") {
-    params.set("keyword", "urgent care");
-    params.set("radius", "10000");
+  if (isEmergency) {
+    params.append("type", "hospital");
   } else {
-    params.set("type", "hospital");
-    params.set("radius", "15000");
+    params.append("keyword", "urgent care");
   }
-  const url = `${baseUrl}?${params.toString()}`;
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${params}`;
   const response = await fetch(url);
   if (!response.ok) {
-    console.error(`Places API HTTP error: ${response.status}`);
-    return [];
+    throw new Error(`Places API error: ${response.status}`);
   }
   const data = await response.json();
   if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-    console.error(`Places API status: ${data.status}`);
+    throw new Error(`Places API status: ${data.status}`);
+  }
+  if (!data.results || data.results.length === 0) {
     return [];
   }
-  const facilities = data.results.map((place) => ({
+  const facilities = data.results.filter((place) => place.opening_hours?.open_now !== false).map((place) => ({
     name: place.name,
-    address: place.vicinity ?? "",
-    distanceMeters: haversineMeters(
-      location.lat,
-      location.lng,
-      place.geometry.location.lat,
-      place.geometry.location.lng
+    address: place.vicinity,
+    distanceMeters: Math.round(
+      haversineDistance(
+        location.lat,
+        location.lng,
+        place.geometry.location.lat,
+        place.geometry.location.lng
+      )
     ),
-    openNow: place.opening_hours?.open_now ?? false,
+    openNow: place.opening_hours?.open_now ?? true,
     lat: place.geometry.location.lat,
     lng: place.geometry.location.lng,
     placeId: place.place_id
@@ -290,77 +289,107 @@ async function findNearbyFacilities(careTier, location, apiKey) {
   return facilities;
 }
 
+// src/ssm.ts
+var import_client_ssm = require("@aws-sdk/client-ssm");
+var client4 = new import_client_ssm.SSMClient({ region: process.env.AWS_REGION });
+var PLACES_API_KEY_PARAM = process.env.PLACES_API_KEY_PARAM || "/firstaid-ai/places-api-key";
+var cachedApiKey = null;
+async function getPlacesApiKey() {
+  if (cachedApiKey) {
+    return cachedApiKey;
+  }
+  const command = new import_client_ssm.GetParameterCommand({
+    Name: PLACES_API_KEY_PARAM,
+    WithDecryption: true
+  });
+  const response = await client4.send(command);
+  if (!response.Parameter?.Value) {
+    throw new Error("Places API key not found in SSM");
+  }
+  cachedApiKey = response.Parameter.Value;
+  return cachedApiKey;
+}
+
 // src/handler.ts
-var corsHeaders = {
-  "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN ?? "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type"
-};
-function respond(statusCode, body) {
+var SIMILARITY_THRESHOLD = parseFloat(process.env.SIMILARITY_THRESHOLD || "0.5");
+var CLOUDFRONT_ORIGIN = process.env.CLOUDFRONT_ORIGIN || "*";
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": CLOUDFRONT_ORIGIN,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+}
+function errorResponse(statusCode, error, message) {
   return {
     statusCode,
-    headers: { "Content-Type": "application/json", ...corsHeaders },
+    headers: corsHeaders(),
+    body: JSON.stringify({ error, ...message ? { message } : {} })
+  };
+}
+function successResponse(body) {
+  return {
+    statusCode: 200,
+    headers: corsHeaders(),
     body: JSON.stringify(body)
   };
 }
-var SIMILARITY_THRESHOLD = parseFloat(process.env.SIMILARITY_THRESHOLD ?? "0.5");
 async function handler(event) {
-  if (event.requestContext?.http?.method === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders, body: "" };
+  if (event.requestContext.http.method === "OPTIONS") {
+    return {
+      statusCode: 204,
+      headers: corsHeaders(),
+      body: ""
+    };
   }
-  let parsed;
+  let request;
   try {
-    parsed = JSON.parse(event.body ?? "{}");
-  } catch {
-    return respond(400, { error: "invalid_request", message: "Invalid JSON" });
-  }
-  const { query, location } = parsed;
-  if (!query || typeof query !== "string" || query.trim().length === 0) {
-    return respond(400, { error: "invalid_request", message: "query is required" });
-  }
-  if (query.length > 500) {
-    return respond(400, {
-      error: "invalid_request",
-      message: "query must be 500 characters or fewer"
-    });
-  }
-  if (location !== void 0) {
-    if (typeof location !== "object" || typeof location.lat !== "number" || typeof location.lng !== "number") {
-      return respond(400, {
-        error: "invalid_request",
-        message: "location must have numeric lat and lng"
-      });
+    if (!event.body) {
+      return errorResponse(400, "invalid_request", "Request body is required");
     }
+    request = JSON.parse(event.body);
+  } catch {
+    return errorResponse(400, "invalid_request", "Invalid JSON");
   }
-  let apiKey;
+  if (!request.query || typeof request.query !== "string" || request.query.trim().length === 0) {
+    return errorResponse(400, "invalid_request", "query is required");
+  }
+  if (request.query.length > 500) {
+    return errorResponse(400, "invalid_request", "query must be 500 characters or fewer");
+  }
+  let placesApiKey;
   try {
-    apiKey = await getPlacesApiKey();
+    placesApiKey = await getPlacesApiKey();
   } catch (err) {
-    console.error("SSM getPlacesApiKey failed (non-fatal):", err);
+    console.error("SSM error:", err);
+    placesApiKey = "";
   }
   let parserResult;
   try {
-    parserResult = await invokeParser(query);
+    parserResult = await invokeParser(request.query);
   } catch (err) {
-    console.error("Parser invocation failed:", err);
-    return respond(503, { error: "parser_unavailable" });
+    console.error("Parser error:", err);
+    return errorResponse(503, "parser_unavailable");
   }
   if (parserResult.action === "clarify") {
-    return respond(200, {
+    return successResponse({
       type: "clarification",
       question: parserResult.clarificationQuestion,
       reason: parserResult.clarificationReason
     });
   }
-  let retrievalResult;
+  let chunks;
   try {
-    retrievalResult = await retrieveFromKnowledgeBase(parserResult.normalizedQuery);
+    chunks = await retrieveFromKnowledgeBase(parserResult.normalizedQuery);
   } catch (err) {
-    console.error("KB retrieval failed:", err);
-    return respond(503, { error: "retrieval_unavailable" });
+    console.error("Retrieval error:", err);
+    return errorResponse(503, "retrieval_unavailable");
   }
-  if (retrievalResult.maxScore < SIMILARITY_THRESHOLD) {
-    return respond(200, {
+  const maxScore = chunks.length > 0 ? Math.max(...chunks.map((c) => c.score)) : 0;
+  if (maxScore < SIMILARITY_THRESHOLD) {
+    console.log(`Out-of-scope: max similarity ${maxScore} < ${SIMILARITY_THRESHOLD}`);
+    return successResponse({
       type: "triage",
       severity: "self_care",
       steps: [],
@@ -370,17 +399,21 @@ async function handler(event) {
   }
   let formatterResult;
   try {
-    formatterResult = await invokeFormatter(
-      retrievalResult.chunks,
-      parserResult.extractedContext
-    );
+    formatterResult = await invokeFormatter(chunks, parserResult.extractedContext);
   } catch (err) {
-    console.error("Formatter invocation failed:", err);
-    return respond(503, { error: "triage_unavailable" });
+    console.error("Formatter error:", err);
+    return errorResponse(503, "triage_unavailable");
   }
-  console.log("Triage reasoning:", formatterResult.reasoning);
+  console.log(
+    JSON.stringify({
+      reasoning: formatterResult.reasoning,
+      query: request.query,
+      normalizedQuery: parserResult.normalizedQuery,
+      maxScore
+    })
+  );
   if (formatterResult.outOfScope) {
-    return respond(200, {
+    return successResponse({
       type: "triage",
       severity: formatterResult.severity,
       steps: formatterResult.steps,
@@ -389,14 +422,18 @@ async function handler(event) {
     });
   }
   let facilities = [];
-  if (formatterResult.careTier !== "self_care" && location && apiKey) {
+  if (formatterResult.careTier !== "self_care" && request.location && placesApiKey) {
     try {
-      facilities = await findNearbyFacilities(formatterResult.careTier, location, apiKey);
+      facilities = await findNearbyFacilities(
+        formatterResult.careTier,
+        request.location,
+        placesApiKey
+      );
     } catch (err) {
-      console.error("Places API failed (non-fatal):", err);
+      console.error("Places API error:", err);
     }
   }
-  return respond(200, {
+  return successResponse({
     type: "triage",
     severity: formatterResult.severity,
     steps: formatterResult.steps,
@@ -405,7 +442,7 @@ async function handler(event) {
     ...facilities.length > 0 ? { facilities } : {}
   });
 }
-export {
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
   handler
-};
-//# sourceMappingURL=handler.js.map
+});

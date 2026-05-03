@@ -1,26 +1,30 @@
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm'
 
-const ssm = new SSMClient({})
+const client = new SSMClient({ region: process.env.AWS_REGION })
+const PLACES_API_KEY_PARAM = process.env.PLACES_API_KEY_PARAM || '/firstaid-ai/places-api-key'
 
-/** Module-scoped cache — survives across warm Lambda invocations. */
-let cachedApiKey: string | undefined
+// Cache the API key in module scope after cold start
+let cachedApiKey: string | null = null
 
 /**
  * Reads the Google Places API key from SSM Parameter Store.
- * The value is fetched once on cold start and cached for subsequent invocations.
+ * Caches the result in module scope to avoid repeated SSM calls.
  */
 export async function getPlacesApiKey(): Promise<string> {
-  if (cachedApiKey) return cachedApiKey
+  if (cachedApiKey) {
+    return cachedApiKey
+  }
 
-  const paramName = process.env.PLACES_API_KEY_PARAM ?? '/firstaid-ai/places-api-key'
+  const command = new GetParameterCommand({
+    Name: PLACES_API_KEY_PARAM,
+    WithDecryption: true,
+  })
 
-  const result = await ssm.send(
-    new GetParameterCommand({ Name: paramName, WithDecryption: true }),
-  )
+  const response = await client.send(command)
+  if (!response.Parameter?.Value) {
+    throw new Error('Places API key not found in SSM')
+  }
 
-  const value = result.Parameter?.Value
-  if (!value) throw new Error(`SSM parameter ${paramName} not found or empty`)
-
-  cachedApiKey = value
+  cachedApiKey = response.Parameter.Value
   return cachedApiKey
 }

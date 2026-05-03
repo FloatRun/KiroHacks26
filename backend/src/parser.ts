@@ -2,92 +2,15 @@ import {
   BedrockRuntimeClient,
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime'
-import type { ClarificationReason } from './types/api.js'
 
-const bedrock = new BedrockRuntimeClient({})
-
-/** Result when the parser decides to retrieve from the knowledge base. */
-export interface ParseRetrieveResult {
-  action: 'retrieve'
-  normalizedQuery: string
-  extractedContext: {
-    scenario?: string
-    severity_signals?: string[]
-    subject?: string
-  }
-}
-
-/** Result when the parser asks for clarification. */
-export interface ParseClarifyResult {
-  action: 'clarify'
-  clarificationQuestion: string
-  clarificationReason: ClarificationReason
-}
-
-export type ParseResult = ParseRetrieveResult | ParseClarifyResult
+const client = new BedrockRuntimeClient({ region: process.env.AWS_REGION })
+const MODEL_ID = process.env.CLAUDE_MODEL_ID || 'us.anthropic.claude-sonnet-4-20250514-v1:0'
 
 /**
- * Stage 1 — Invoke Bedrock Claude to parse the user's input into either
- * a normalized retrieval query or a clarification request.
- *
- * Uses forced tool_choice so the model must call parse_user_input.
+ * Parser system prompt — hand-tuned, do NOT auto-generate.
+ * Calibrates retrieve/clarify bias. Must pass all 5 demo scenarios.
  */
-export async function invokeParser(query: string): Promise<ParseResult> {
-  const modelId = process.env.CLAUDE_MODEL_ID ?? 'anthropic.claude-sonnet-4-20250514-v1:0'
-
-  const tool = {
-    name: 'parse_user_input',
-    description:
-      'Parse the user\'s described situation into either a normalized retrieval query or a clarification request.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        action: {
-          type: 'string',
-          enum: ['retrieve', 'clarify'],
-        },
-        normalizedQuery: {
-          type: 'string',
-          description:
-            'A concise, retrieval-optimized phrasing of the user\'s situation. Required when action === \'retrieve\'.',
-        },
-        extractedContext: {
-          type: 'object',
-          description:
-            'Structured context extracted from input. Required when action === \'retrieve\'.',
-          properties: {
-            scenario: {
-              type: 'string',
-              description: "Primary scenario tag, e.g., 'burn', 'cut', 'allergic_reaction'",
-            },
-            severity_signals: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Phrases indicating severity',
-            },
-            subject: {
-              type: 'string',
-              description: "Who the situation is about, e.g., 'self', 'child', 'adult'",
-            },
-          },
-        },
-        clarificationQuestion: {
-          type: 'string',
-          description:
-            'A single short question to ask the user. Required when action === \'clarify\'. Maximum 15 words.',
-        },
-        clarificationReason: {
-          type: 'string',
-          enum: ['too_vague', 'missing_severity', 'missing_subject', 'non_medical', 'ambiguous_scenario'],
-          description: 'Why clarification is needed. Required when action === \'clarify\'.',
-        },
-      },
-      required: ['action'],
-    },
-  }
-
-  // Hand-tuned system prompt — do not regenerate.
-  const systemPrompt = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
+const PARSER_SYSTEM_PROMPT = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
 
 Rules:
 - Default to action "retrieve" when the scenario and at least one severity signal are reasonably inferable from the input.
@@ -97,46 +20,115 @@ Rules:
 - Bias toward retrieve. When in doubt, retrieve.
 - Never produce prose. Only call the tool.`
 
-  const body = JSON.stringify({
+const PARSE_USER_INPUT_TOOL = {
+  name: 'parse_user_input',
+  description:
+    "Parse the user's described situation into either a normalized retrieval query or a clarification request.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      action: {
+        type: 'string',
+        enum: ['retrieve', 'clarify'],
+      },
+      normalizedQuery: {
+        type: 'string',
+        description:
+          "A concise, retrieval-optimized phrasing of the user's situation. Required when action === 'retrieve'.",
+      },
+      extractedContext: {
+        type: 'object',
+        description: "Structured context extracted from input. Required when action === 'retrieve'.",
+        properties: {
+          scenario: {
+            type: 'string',
+            description: "Primary scenario tag, e.g., 'burn', 'cut', 'allergic_reaction'",
+          },
+          severity_signals: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Phrases indicating severity',
+          },
+          subject: {
+            type: 'string',
+            description: "Who the situation is about, e.g., 'self', 'child', 'adult'",
+          },
+        },
+      },
+      clarificationQuestion: {
+        type: 'string',
+        description:
+          "A single short question to ask the user. Required when action === 'clarify'. Maximum 15 words.",
+      },
+      clarificationReason: {
+        type: 'string',
+        enum: [
+          'too_vague',
+          'missing_severity',
+          'missing_subject',
+          'non_medical',
+          'ambiguous_scenario',
+        ],
+        description: "Why clarification is needed. Required when action === 'clarify'.",
+      },
+    },
+    required: ['action'],
+  },
+}
+
+export interface ParserRetrieveResult {
+  action: 'retrieve'
+  normalizedQuery: string
+  extractedContext: {
+    scenario: string
+    severity_signals: string[]
+    subject: string
+  }
+}
+
+export interface ParserClarifyResult {
+  action: 'clarify'
+  clarificationQuestion: string
+  clarificationReason: string
+}
+
+export type ParserResult = ParserRetrieveResult | ParserClarifyResult
+
+/**
+ * Stage 1: Parser
+ * Invokes Bedrock Claude with the parse_user_input tool.
+ * Returns either a normalized query for retrieval or a clarification request.
+ */
+export async function invokeParser(query: string): Promise<ParserResult> {
+  const payload = {
     anthropic_version: 'bedrock-2023-05-31',
     max_tokens: 1024,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: query }],
-    tools: [tool],
+    system: PARSER_SYSTEM_PROMPT,
+    messages: [
+      {
+        role: 'user',
+        content: query,
+      },
+    ],
+    tools: [PARSE_USER_INPUT_TOOL],
     tool_choice: { type: 'tool', name: 'parse_user_input' },
-  })
+  }
 
   const command = new InvokeModelCommand({
-    modelId,
+    modelId: MODEL_ID,
     contentType: 'application/json',
     accept: 'application/json',
-    body: new TextEncoder().encode(body),
+    body: JSON.stringify(payload),
   })
 
-  const response = await bedrock.send(command)
+  const response = await client.send(command)
   const responseBody = JSON.parse(new TextDecoder().decode(response.body))
 
-  // Extract the tool_use block
-  const toolUse = responseBody.content?.find(
-    (block: { type: string }) => block.type === 'tool_use',
-  )
-  if (!toolUse?.input) {
-    throw new Error('Parser did not return a tool_use block')
+  // Extract tool use from response
+  const toolUse = responseBody.content?.find((block: any) => block.type === 'tool_use')
+  if (!toolUse || toolUse.name !== 'parse_user_input') {
+    throw new Error('Parser did not return expected tool use')
   }
 
-  const input = toolUse.input as Record<string, unknown>
-
-  if (input.action === 'clarify') {
-    return {
-      action: 'clarify',
-      clarificationQuestion: (input.clarificationQuestion as string) ?? 'Can you describe what happened in more detail?',
-      clarificationReason: (input.clarificationReason as ClarificationReason) ?? 'too_vague',
-    }
-  }
-
-  return {
-    action: 'retrieve',
-    normalizedQuery: (input.normalizedQuery as string) ?? query,
-    extractedContext: (input.extractedContext as ParseRetrieveResult['extractedContext']) ?? {},
-  }
+  return toolUse.input as ParserResult
 }
