@@ -97,12 +97,32 @@ export default function App() {
   const isLoading = view.kind === 'loading'
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-50 via-white to-red-50">
       {/* App header */}
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-lg items-center gap-2">
-          <span aria-hidden="true" className="text-xl">🩹</span>
-          <span className="text-lg font-bold text-gray-900">FirstAid AI</span>
+      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 py-4 shadow-sm">
+        <div className="mx-auto flex max-w-lg items-center gap-3">
+          {/* Red Cross Logo */}
+          <div 
+            aria-hidden="true" 
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 shadow-md"
+          >
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              className="text-white"
+            >
+              <path 
+                d="M13 3h-2v8H3v2h8v8h2v-8h8v-2h-8V3z" 
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div>
+            <span className="text-xl font-bold text-gray-900">FirstAid AI</span>
+            <p className="text-xs text-gray-600 font-medium">Emergency Guidance</p>
+          </div>
         </div>
       </header>
 

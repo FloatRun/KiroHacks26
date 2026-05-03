@@ -47,8 +47,8 @@ function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
 }
 
 interface FacilityMapProps {
-  facilities: Facility[]
-  userLocation: { lat: number; lng: number }
+  readonly facilities: Facility[]
+  readonly userLocation: { lat: number; lng: number }
 }
 
 /**
