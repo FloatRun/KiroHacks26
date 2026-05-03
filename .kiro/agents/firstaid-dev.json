@@ -1,0 +1,94 @@
+{
+  "name": "firstaid-dev",
+  "description": "FirstAid AI development agent with automated build and deploy checks",
+  "prompt": "You are a development agent for FirstAid AI, a serverless RAG triage application. Always read the steering docs before making changes. Architecture boundaries: frontend never calls Bedrock/SSM directly; handler.ts is the sole orchestrator; reasoning field is logged server-side only and never returned to the client. Keep types/api.ts in sync between frontend and backend.",
+  "tools": ["fs_read", "fs_write", "execute_bash", "grep", "glob", "code", "use_aws"],
+  "allowedTools": ["fs_read", "grep", "glob", "code"],
+  "toolsSettings": {
+    "fs_write": {
+      "allowedPaths": [
+        "frontend/src/**",
+        "backend/src/**",
+        "lambda_backend/src/**",
+        "cdk/lib/**",
+        "cdk/bin/**",
+        "scripts/**",
+        ".kiro/**"
+      ],
+      "deniedPaths": [
+        "**/node_modules/**",
+        "backend/dist/**",
+        "cdk/cdk.out/**"
+      ]
+    },
+    "execute_bash": {
+      "allowedCommands": [
+        "npm run build",
+        "npm run lint",
+        "npm run dev",
+        "git log",
+        "git diff",
+        "git status",
+        "git add",
+        "git commit",
+        "ls",
+        "echo"
+      ],
+      "autoAllowReadonly": true
+    },
+    "use_aws": {
+      "allowedServices": ["lambda", "s3", "cloudfront", "logs", "ssm", "bedrock", "bedrock-agent", "bedrock-agent-runtime"],
+      "autoAllowReadonly": true
+    }
+  },
+  "resources": [
+    "file://.kiro/steering/product.md",
+    "file://.kiro/steering/tech.md",
+    "file://.kiro/steering/architecture.md",
+    "file://.kiro/steering/structure.md",
+    "file://.kiro/steering/api-contract.md",
+    "file://.kiro/steering/component-map.md",
+    "file://.kiro/steering/tool-schemas.md"
+  ],
+  "hooks": {
+    "agentSpawn": [
+      {
+        "command": "echo '=== FirstAid AI Dev ===' && git log --oneline -5 && echo '--- Backend build status ---' && ls backend/dist/ 2>/dev/null || echo 'No dist — run npm run build in backend/'"
+      }
+    ],
+    "userPromptSubmit": [
+      {
+        "command": "cd backend && git diff --stat HEAD 2>/dev/null | head -20"
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "fs_write",
+        "command": "echo '[pre-write] Showing current diff for context:' && git diff HEAD 2>/dev/null | head -60"
+      }
+    ],
+    "stop": [
+      {
+        "command": "cd backend && npm run build 2>&1 | tail -8"
+      }
+    ]
+  },
+  "mcpServers": {
+    "aws-docs": {
+      "command": "uvx",
+      "args": ["awslabs.aws-documentation-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "$GITHUB_TOKEN"
+      }
+    }
+  },
+  "keyboardShortcut": "ctrl+shift+f",
+  "welcomeMessage": "FirstAid AI dev agent ready. Steering docs loaded. What are we building?"
+}
