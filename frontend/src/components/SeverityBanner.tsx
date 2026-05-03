@@ -1,34 +1,8 @@
 import type { Severity } from '../types/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface SeverityBannerProps {
-  severity: Severity
-}
-
-const config: Record<
-  Severity,
-  { bg: string; label: string; icon: string; ariaLabel: string; gradient: string }
-> = {
-  self_care: {
-    bg: 'bg-green-500',
-    gradient: 'bg-gradient-to-r from-green-500 to-green-600',
-    label: 'Self-Care',
-    icon: '✓',
-    ariaLabel: 'Severity: Self-care — manageable at home',
-  },
-  urgent_care: {
-    bg: 'bg-yellow-400',
-    gradient: 'bg-gradient-to-r from-yellow-400 to-orange-500',
-    label: 'Urgent Care',
-    icon: '!',
-    ariaLabel: 'Severity: Urgent care — needs attention soon',
-  },
-  emergency: {
-    bg: 'bg-red-600',
-    gradient: 'bg-gradient-to-r from-red-600 to-red-700',
-    label: 'Emergency',
-    icon: '⚠',
-    ariaLabel: 'Severity: Emergency — call 911 immediately',
-  },
+  readonly severity: Severity
 }
 
 /**
@@ -38,7 +12,29 @@ const config: Record<
  * Severity is communicated by BOTH color AND text label (never color alone).
  */
 export default function SeverityBanner({ severity }: SeverityBannerProps) {
-  const { gradient, label, icon, ariaLabel } = config[severity]
+  const { t } = useLanguage()
+  
+  const config: Record<Severity, { bg: string; gradient: string; icon: string }> = {
+    self_care: {
+      bg: 'bg-green-500',
+      gradient: 'bg-gradient-to-r from-green-500 to-green-600',
+      icon: '✓',
+    },
+    urgent_care: {
+      bg: 'bg-yellow-400',
+      gradient: 'bg-gradient-to-r from-yellow-400 to-orange-500',
+      icon: '!',
+    },
+    emergency: {
+      bg: 'bg-red-600',
+      gradient: 'bg-gradient-to-r from-red-600 to-red-700',
+      icon: '⚠',
+    },
+  }
+
+  const { gradient, icon } = config[severity]
+  const label = t(`severity.${severity}`)
+  const ariaLabel = `${t('severity.level')}: ${label}`
 
   // yellow-400 and green-500 backgrounds need dark text to meet WCAG AAA contrast
   const textColor = severity === 'emergency' ? 'text-white' : severity === 'urgent_care' ? 'text-yellow-900' : 'text-white'
@@ -59,7 +55,7 @@ export default function SeverityBanner({ severity }: SeverityBannerProps) {
       </span>
       <div className="flex-1">
         <p className="text-xs font-bold uppercase tracking-widest opacity-90 mb-1">
-          Severity Level
+          {t('severity.level')}
         </p>
         {/* Minimum 24px font size per requirements */}
         <p className="text-[1.75rem] font-extrabold leading-tight">{label}</p>

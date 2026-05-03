@@ -7,8 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://gdla3hvoc8.execute-api.us-west-2.amazonaws.com',
         changeOrigin: true,
+        secure: true,
       },
     },
   },

@@ -1,8 +1,12 @@
+import { useLanguage } from '../contexts/LanguageContext'
+
 /**
  * Shown while a triage request is in flight.
  * aria-live="polite" announces loading to screen readers.
  */
 export default function LoadingState() {
+  const { t } = useLanguage()
+  
   return (
     <main
       className="flex flex-col items-center justify-center gap-6 px-4 py-16"
@@ -20,9 +24,9 @@ export default function LoadingState() {
         id="loading-heading"
         className="text-center"
       >
-        <p className="text-lg font-semibold text-gray-800">Analyzing your situation…</p>
+        <p className="text-lg font-semibold text-gray-800">{t('loading.analyzing')}</p>
         <p className="mt-1 text-sm text-gray-500">
-          Retrieving first-aid guidance. This takes a few seconds.
+          {t('loading.retrieving')}
         </p>
       </div>
 

@@ -12,7 +12,8 @@ const MODEL_ID = process.env.CLAUDE_MODEL_ID || 'us.anthropic.claude-sonnet-4-20
  * Formatter system prompt — hand-tuned, do NOT auto-generate.
  * Enforces step count, character limits, over-escalation bias.
  */
-const FORMATTER_SYSTEM_PROMPT = `You are a medical triage formatter. Your only job is to call the submit_triage tool.
+function getFormatterSystemPrompt(language: 'en' | 'es'): string {
+  const basePrompt = `You are a medical triage formatter. Your only job is to call the submit_triage tool.
 
 Rules:
 - Answer ONLY from the provided retrieval context. Do not use your general medical knowledge.
@@ -21,6 +22,15 @@ Rules:
 - If the retrieval context is thin, ambiguous, or does not clearly address the scenario, set outOfScope to true.
 - Bias toward over-escalation on severity. When uncertain between urgent_care and emergency, choose emergency.
 - Never produce prose. Only call the tool.`
+
+  if (language === 'es') {
+    return basePrompt + `
+
+IMPORTANT: Respond in Spanish. All steps must be written in clear, simple Spanish that a panicked Spanish-speaking person can understand. Use imperative voice (commands) in Spanish. Keep medical terms simple and accessible.`
+  }
+
+  return basePrompt
+}
 
 const SUBMIT_TRIAGE_TOOL = {
   name: 'submit_triage',
@@ -75,6 +85,7 @@ export interface FormatterResult {
 export async function invokeFormatter(
   chunks: RetrievalChunk[],
   extractedContext: any,
+  language: 'en' | 'es' = 'en',
 ): Promise<FormatterResult> {
   // Build context from retrieved chunks
   const contextText = chunks
@@ -86,7 +97,7 @@ export async function invokeFormatter(
   const payload = {
     anthropic_version: 'bedrock-2023-05-31',
     max_tokens: 2048,
-    system: FORMATTER_SYSTEM_PROMPT,
+    system: getFormatterSystemPrompt(language),
     messages: [
       {
         role: 'user',

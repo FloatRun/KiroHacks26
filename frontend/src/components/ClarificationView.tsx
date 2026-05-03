@@ -1,10 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface ClarificationViewProps {
-  question: string
-  originalQuery: string
-  onSubmit: (answer: string) => void
-  disabled: boolean
+  readonly question: string
+  readonly originalQuery: string
+  readonly onSubmit: (answer: string) => void
+  readonly disabled: boolean
 }
 
 const MAX_CHARS = 500
@@ -23,6 +24,7 @@ export default function ClarificationView({
   onSubmit,
   disabled,
 }: ClarificationViewProps) {
+  const { t } = useLanguage()
   const [answer, setAnswer] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -55,7 +57,7 @@ export default function ClarificationView({
       {/* Clarification question — displayed prominently */}
       <div className="rounded-xl bg-blue-50 px-5 py-4 ring-1 ring-blue-200">
         <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-blue-600">
-          We need a bit more information
+          {t('clarification.need_info')}
         </p>
         <h1
           id="clarification-heading"
@@ -66,9 +68,9 @@ export default function ClarificationView({
       </div>
 
       {/* Original query — immutable label */}
-      <div aria-label="Your original description">
+      <div aria-label={t('clarification.original_description')}>
         <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
-          Your original description
+          {t('clarification.original_description')}
         </p>
         <p className="rounded-lg bg-gray-100 px-4 py-3 text-sm leading-relaxed text-gray-600 italic">
           "{originalQuery}"
@@ -81,7 +83,7 @@ export default function ClarificationView({
           htmlFor="clarification-input"
           className="mb-1.5 block text-sm font-semibold text-gray-700"
         >
-          Your answer
+          {t('clarification.your_answer')}
         </label>
         <textarea
           id="clarification-input"
@@ -90,7 +92,7 @@ export default function ClarificationView({
           onChange={(e) => setAnswer(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          placeholder="Type your answer here…"
+          placeholder={t('clarification.placeholder')}
           rows={3}
           aria-describedby="clarification-char-count"
           className={[
@@ -115,8 +117,8 @@ export default function ClarificationView({
           ].join(' ')}
         >
           {isOverLimit
-            ? `${Math.abs(remaining)} over limit`
-            : `${remaining} remaining`}
+            ? t('clarification.over_limit').replace('{count}', Math.abs(remaining).toString())
+            : t('clarification.remaining').replace('{count}', remaining.toString())}
         </p>
       </div>
 
@@ -124,7 +126,7 @@ export default function ClarificationView({
         type="button"
         onClick={handleSubmit}
         disabled={!canSubmit}
-        aria-label="Submit your clarifying answer"
+        aria-label={t('clarification.submit_label')}
         className={[
           'min-h-[44px] w-full rounded-xl px-6 py-3 text-base font-semibold',
           'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
@@ -133,7 +135,7 @@ export default function ClarificationView({
             : 'cursor-not-allowed bg-gray-200 text-gray-400',
         ].join(' ')}
       >
-        {disabled ? 'Analyzing…' : 'Submit Answer'}
+        {disabled ? t('clarification.analyzing') : t('clarification.submit')}
       </button>
     </main>
   )

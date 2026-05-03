@@ -1,11 +1,14 @@
 import QueryInput from '../components/QueryInput'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface LandingViewProps {
-  onSubmit: (query: string) => void
-  disabled: boolean
+  readonly onSubmit: (query: string) => void
+  readonly disabled: boolean
 }
 
 export default function LandingView({ onSubmit, disabled }: LandingViewProps) {
+  const { t } = useLanguage()
+  
   return (
     <main
       className="flex flex-1 flex-col gap-8 px-4 py-8"
@@ -35,11 +38,12 @@ export default function LandingView({ onSubmit, disabled }: LandingViewProps) {
           id="landing-heading"
           className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3"
         >
-          FirstAid AI
+          {t('landing.title')}
         </h1>
         <p className="text-lg leading-relaxed text-gray-600 max-w-md mx-auto">
-          Describe your medical situation and get clear, grounded first-aid guidance in
-          seconds. <span className="font-semibold text-red-600">Free.</span> No account required.
+          {t('landing.description').replace('{free}', `**${t('landing.free')}**`).split('**').map((part, i) => 
+            i % 2 === 1 ? <span key={i} className="font-semibold text-red-600">{part}</span> : part
+          )}
         </p>
       </div>
 
@@ -51,20 +55,20 @@ export default function LandingView({ onSubmit, disabled }: LandingViewProps) {
       {/* Trust signals */}
       <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
         <h2 className="text-sm font-semibold text-blue-900 mb-3 uppercase tracking-wide">
-          Trusted Sources
+          {t('trust.title')}
         </h2>
         <ul
           className="flex flex-col gap-2 text-sm text-blue-800"
           aria-label="Key features"
         >
           {[
-            '✓ Grounded in NHS, MEDLINE, and Mayo Clinic protocols',
-            '✓ No account, no tracking, no data stored',
-            '✓ Works on any device, anywhere',
+            t('trust.protocols'),
+            t('trust.privacy'),
+            t('trust.device'),
           ].map((item) => (
             <li key={item} className="flex items-center gap-2">
               <span className="text-green-600 font-bold">✓</span>
-              <span>{item.substring(2)}</span>
+              <span>{item}</span>
             </li>
           ))}
         </ul>

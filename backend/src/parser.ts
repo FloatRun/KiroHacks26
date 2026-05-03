@@ -10,7 +10,8 @@ const MODEL_ID = process.env.CLAUDE_MODEL_ID || 'us.anthropic.claude-sonnet-4-20
  * Parser system prompt — hand-tuned, do NOT auto-generate.
  * Calibrates retrieve/clarify bias. Must pass all 5 demo scenarios.
  */
-const PARSER_SYSTEM_PROMPT = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
+function getParserSystemPrompt(language: 'en' | 'es'): string {
+  const basePrompt = `You are a medical triage input parser. Your only job is to call the parse_user_input tool.
 
 Rules:
 - Default to action "retrieve" when the scenario and at least one severity signal are reasonably inferable from the input.
@@ -19,6 +20,15 @@ Rules:
 - Clarification questions must be a single sentence, under 15 words, asking only for the single most diagnostically important missing piece of information.
 - Bias toward retrieve. When in doubt, retrieve.
 - Never produce prose. Only call the tool.`
+
+  if (language === 'es') {
+    return basePrompt + `
+
+IMPORTANT: If action is "clarify", respond in Spanish. The clarification question should be in Spanish and appropriate for Spanish-speaking users.`
+  }
+
+  return basePrompt
+}
 
 const PARSE_USER_INPUT_TOOL = {
   name: 'parse_user_input',
@@ -99,11 +109,11 @@ export type ParserResult = ParserRetrieveResult | ParserClarifyResult
  * Invokes Bedrock Claude with the parse_user_input tool.
  * Returns either a normalized query for retrieval or a clarification request.
  */
-export async function invokeParser(query: string): Promise<ParserResult> {
+export async function invokeParser(query: string, language: 'en' | 'es' = 'en'): Promise<ParserResult> {
   const payload = {
     anthropic_version: 'bedrock-2023-05-31',
     max_tokens: 1024,
-    system: PARSER_SYSTEM_PROMPT,
+    system: getParserSystemPrompt(language),
     messages: [
       {
         role: 'user',
