@@ -49,10 +49,12 @@ export async function findNearbyFacilities(
   if (careTier === 'urgent_care') {
     params.set('keyword', 'urgent care')
     params.set('radius', '10000')
-  } else {
-    // emergency
+  } else if (careTier === 'emergency') {
     params.set('type', 'hospital')
     params.set('radius', '15000')
+  } else {
+    // self_care should never reach here — handler guards against it
+    return []
   }
 
   const url = `${baseUrl}?${params.toString()}`

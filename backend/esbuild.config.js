@@ -1,5 +1,4 @@
 import { build } from 'esbuild'
-import { execSync } from 'child_process'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -17,8 +16,24 @@ await build({
   external: ['@aws-sdk/*'],
 })
 
-// Zip for Lambda deployment
+// Cross-platform zip for Lambda deployment
+async function createZip(outputPath, files) {
+  const { execSync } = await import('child_process')
+  const distDir = resolve(__dirname, 'dist')
+
+  if (process.platform === 'win32') {
+    const filePaths = files.map(f => resolve(distDir, f)).join("','")
+    execSync(
+      `powershell -NoProfile -Command "Compress-Archive -Path '${filePaths}' -DestinationPath '${outputPath}' -Force"`,
+    )
+  } else {
+    const fileList = files.join(' ')
+    execSync(`cd "${distDir}" && zip -r handler.zip ${fileList}`)
+  }
+}
+
 const distDir = resolve(__dirname, 'dist')
-execSync(`cd ${distDir} && zip -r handler.zip handler.js handler.js.map`)
+const zipPath = resolve(distDir, 'handler.zip')
+await createZip(zipPath, ['handler.js', 'handler.js.map'])
 
 console.log('Build complete → dist/handler.js + dist/handler.zip')

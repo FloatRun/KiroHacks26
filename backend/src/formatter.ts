@@ -76,9 +76,11 @@ Rules:
 - Never produce prose. Only call the tool.`
 
   // Build the user message with retrieval context + extracted context
-  const contextBlock = chunks
-    .map((c, i) => `[Source ${i + 1} (score: ${c.score.toFixed(3)})]:\n${c.text}`)
-    .join('\n\n')
+  const contextBlock = chunks.length > 0
+    ? chunks
+        .map((c, i) => `[Source ${i + 1} (score: ${c.score.toFixed(3)})]:\n${c.text}`)
+        .join('\n\n')
+    : '(No retrieval context available)'
 
   const contextSummary = [
     extractedContext.scenario && `Scenario: ${extractedContext.scenario}`,

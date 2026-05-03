@@ -1,5 +1,3 @@
-import { createRequire } from 'module'; const require = createRequire(import.meta.url);
-
 // src/ssm.ts
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 var ssm = new SSMClient({});
@@ -195,8 +193,8 @@ Rules:
 - If the retrieval context is thin, ambiguous, or does not clearly address the scenario, set outOfScope to true.
 - Bias toward over-escalation on severity. When uncertain between urgent_care and emergency, choose emergency.
 - Never produce prose. Only call the tool.`;
-  const contextBlock = chunks.map((c, i) => `[Source ${i + 1} (score: ${c.score.toFixed(3)})]:
-${c.text}`).join("\n\n");
+  const contextBlock = chunks.length > 0 ? chunks.map((c, i) => `[Source ${i + 1} (score: ${c.score.toFixed(3)})]:
+${c.text}`).join("\n\n") : "(No retrieval context available)";
   const contextSummary = [
     extractedContext.scenario && `Scenario: ${extractedContext.scenario}`,
     extractedContext.subject && `Subject: ${extractedContext.subject}`,
@@ -258,9 +256,11 @@ async function findNearbyFacilities(careTier, location, apiKey) {
   if (careTier === "urgent_care") {
     params.set("keyword", "urgent care");
     params.set("radius", "10000");
-  } else {
+  } else if (careTier === "emergency") {
     params.set("type", "hospital");
     params.set("radius", "15000");
+  } else {
+    return [];
   }
   const url = `${baseUrl}?${params.toString()}`;
   const response = await fetch(url);
@@ -324,8 +324,8 @@ async function handler(event) {
       message: "query must be 500 characters or fewer"
     });
   }
-  if (location !== void 0) {
-    if (typeof location !== "object" || typeof location.lat !== "number" || typeof location.lng !== "number") {
+  if (location !== void 0 && location !== null) {
+    if (typeof location !== "object" || typeof location.lat !== "number" || typeof location.lng !== "number" || !isFinite(location.lat) || !isFinite(location.lng) || location.lat < -90 || location.lat > 90 || location.lng < -180 || location.lng > 180) {
       return respond(400, {
         error: "invalid_request",
         message: "location must have numeric lat and lng"

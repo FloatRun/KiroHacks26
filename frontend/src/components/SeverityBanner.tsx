@@ -37,8 +37,8 @@ const config: Record<
 export default function SeverityBanner({ severity }: SeverityBannerProps) {
   const { bg, label, icon, ariaLabel } = config[severity]
 
-  // yellow-400 background needs dark text to meet AAA contrast
-  const textColor = severity === 'urgent_care' ? 'text-yellow-900' : 'text-white'
+  // yellow-400 and green-500 backgrounds need dark text to meet WCAG AAA contrast
+  const textColor = severity === 'emergency' ? 'text-white' : severity === 'urgent_care' ? 'text-yellow-900' : 'text-green-950'
 
   return (
     <div
@@ -48,7 +48,9 @@ export default function SeverityBanner({ severity }: SeverityBannerProps) {
     >
       <span
         aria-hidden="true"
-        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/20 text-xl font-bold"
+        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xl font-bold ${
+          severity === 'emergency' ? 'bg-white/20' : 'bg-black/10'
+        }`}
       >
         {icon}
       </span>

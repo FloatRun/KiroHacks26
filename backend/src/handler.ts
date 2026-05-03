@@ -50,11 +50,15 @@ export async function handler(
       message: 'query must be 500 characters or fewer',
     })
   }
-  if (location !== undefined) {
+  if (location !== undefined && location !== null) {
     if (
       typeof location !== 'object' ||
       typeof location.lat !== 'number' ||
-      typeof location.lng !== 'number'
+      typeof location.lng !== 'number' ||
+      !isFinite(location.lat) ||
+      !isFinite(location.lng) ||
+      location.lat < -90 || location.lat > 90 ||
+      location.lng < -180 || location.lng > 180
     ) {
       return respond(400, {
         error: 'invalid_request',
