@@ -69,7 +69,7 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 ### Stage 1: Parser Integration [CRITICAL]
 
 - [x] 2.4: Implement `invokeParser(query: string)` function using `@aws-sdk/client-bedrock-runtime` `InvokeModelCommand`. Pass `parse_user_input` tool definition (verbatim from design.md). Set `tool_choice` to force tool use. [CRITICAL]
-- [ ] 2.5: Write and hand-tune the parser system prompt (NOT Kiro-generated). Test against: "kid burned hand on stove" (expect retrieve), "it hurts" (expect clarify), "my dog bit me" (expect retrieve), "I feel weird" (expect clarify). [CRITICAL]
+- [x] 2.5: Write and hand-tune the parser system prompt (NOT Kiro-generated). Test against: "kid burned hand on stove" (expect retrieve), "it hurts" (expect clarify), "my dog bit me" (expect retrieve), "I feel weird" (expect clarify). [CRITICAL]
 - [x] 2.6: Implement clarification short-circuit: if parser returns `action: "clarify"`, return `{ type: "clarification", question, reason }` immediately. No KB or formatter calls. [CRITICAL]
 - [x] 2.7: Implement error handling for parser: catch InvokeModel errors and timeouts, return 503 `{ error: "parser_unavailable" }`.
 
@@ -82,7 +82,7 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 ### Stage 3: Formatter Integration [CRITICAL]
 
 - [x] 2.11: Implement `invokeFormatter(chunks, extractedContext)` function using `InvokeModelCommand`. Pass `submit_triage` tool definition (verbatim from design.md). Pass retrieved chunks as context in user message. Set `tool_choice` to force tool use. [CRITICAL]
-- [ ] 2.12: Write and hand-tune the formatter system prompt (NOT Kiro-generated). Test against retrieved chunks for: burn scenario (expect 3–5 imperative steps, urgent_care or emergency), choking scenario (expect emergency), minor cut (expect self_care). [CRITICAL]
+- [x] 2.12: Write and hand-tune the formatter system prompt (NOT Kiro-generated). Test against retrieved chunks for: burn scenario (expect 3–5 imperative steps, urgent_care or emergency), choking scenario (expect emergency), minor cut (expect self_care). [CRITICAL]
 - [x] 2.13: Implement reasoning log: extract `reasoning` from formatter output, write to CloudWatch via `console.log`. Strip from client response. [CRITICAL]
 - [x] 2.14: Implement out-of-scope gate: if formatter returns `outOfScope: true`, return out-of-scope triage response.
 - [x] 2.15: Implement error handling for formatter: catch InvokeModel errors and timeouts, return 503 `{ error: "triage_unavailable" }`.

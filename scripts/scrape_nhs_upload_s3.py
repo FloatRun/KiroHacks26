@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Scrape NHS first-aid pages, MedlinePlus Medical Encyclopedia articles,
-and Mayo Clinic first-aid pages, convert to Markdown, and upload to S3
-for Bedrock Knowledge Base.
+Scrape first-aid pages from NHS, MedlinePlus, Mayo Clinic, British Red Cross,
+St John Ambulance, American Red Cross, and Healthdirect Australia, convert to
+Markdown, and upload to S3 for Bedrock Knowledge Base.
 
 Usage:
     pip install requests beautifulsoup4 boto3 html2text
@@ -19,7 +19,15 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
 BUCKET = "firstaidaikbstack-corpusbucket36de2aaa-7r1xfxkvjqoc"
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; FirstAidAI-scraper/1.0)"}
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+}
 
 # --- NHS config ---
 NHS_BASE = "https://www.nhs.uk"
@@ -192,13 +200,207 @@ def scrape_mayo(s3) -> int:
     return count
 
 
+# ---- British Red Cross ----
+BRITISH_REDCROSS_ARTICLES = {
+    "burns": "burns",
+    "choking": "choking-adult",
+    "bleeding-heavily": "severe-bleeding",
+    "allergic-reaction": "anaphylaxis",
+    "head-injury": "head-injury",
+    "heart-attack": "heart-attack",
+    "diabetic-emergency": "diabetic-emergency",
+    "asthma-attack": "asthma-attack",
+    "seizure": "seizure",
+    "strain-or-sprain": "sprains",
+    "unresponsive-and-breathing": "unconscious-breathing",
+    "unresponsive-and-not-breathing": "unconscious-not-breathing",
+    "broken-bone": "fractures",
+    "stroke": "stroke",
+    "swallowed-something-harmful": "poisoning",
+}
+
+BRITISH_REDCROSS_REMOVE = ["nav", "footer", "aside", ".breadcrumb",
+                            ".cookie-banner", ".donate-banner",
+                            "[class*=cookie]", ".related-articles",
+                            ".more-first-aid-resources"]
+
+
+def scrape_british_redcross(s3) -> int:
+    count = 0
+    base = "https://www.redcross.org.uk/first-aid/learn-first-aid"
+    for topic, slug in BRITISH_REDCROSS_ARTICLES.items():
+        url = f"{base}/{topic}"
+        print(f"[British Red Cross] Fetching: {url}")
+        try:
+            soup = fetch_page(url)
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            continue
+        md = to_markdown(soup, url, BRITISH_REDCROSS_REMOVE)
+        key = f"british-redcross/{slug}.md"
+        s3.put_object(Bucket=BUCKET, Key=key, Body=md.encode(), ContentType="text/markdown")
+        print(f"  Uploaded → s3://{BUCKET}/{key} ({len(md)} chars)")
+        count += 1
+    return count
+
+
+# ---- St John Ambulance ----
+SJA_ARTICLES = {
+    "anaphylaxis": "anaphylaxis",
+    "asthma-attack": "asthma-attack",
+    "burns-and-scalds": "burns",
+    "chemical-burns": "chemical-burns",
+    "choking": "choking-adult",
+    "choking-baby-under-one-year-old": "choking-infant",
+    "choking-child": "choking-child",
+    "cuts-and-grazes": "cuts",
+    "diabetic-emergencies": "diabetic-emergency",
+    "eye-injury": "eye-injury",
+    "fainting": "fainting",
+    "head-injury": "head-injury",
+    "heart-attack": "heart-attack",
+    "how-to-do-cpr": "cpr",
+    "human-and-animal-bites": "animal-bites",
+    "nosebleeds": "nosebleed",
+    "poisoning": "poisoning",
+    "seizure": "seizure",
+    "severe-bleeding": "severe-bleeding",
+    "shock": "shock",
+    "sprains-and-strains": "sprains",
+    "baby-seizures": "seizure-infant",
+    "angina-attack": "chest-pain",
+}
+
+SJA_REMOVE = ["nav", "footer", "aside", ".breadcrumb", "[class*=cookie]",
+              ".volunteer-cta", ".course-cta", ".shop-cta",
+              "[class*=newsletter]"]
+
+
+def scrape_sja(s3) -> int:
+    count = 0
+    base = "https://www.sja.org.uk/first-aid-advice"
+    for topic, slug in SJA_ARTICLES.items():
+        url = f"{base}/{topic}/"
+        print(f"[SJA] Fetching: {url}")
+        try:
+            soup = fetch_page(url)
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            continue
+        md = to_markdown(soup, url, SJA_REMOVE)
+        key = f"sja/{slug}_{topic}.md"
+        s3.put_object(Bucket=BUCKET, Key=key, Body=md.encode(), ContentType="text/markdown")
+        print(f"  Uploaded → s3://{BUCKET}/{key} ({len(md)} chars)")
+        count += 1
+    return count
+
+
+# ---- American Red Cross ----
+AMERICAN_REDCROSS_ARTICLES = {
+    "burns": "burns",
+    "adult-child-choking": "choking-adult",
+    "infant-choking": "choking-infant",
+    "allergic-reaction-anaphylaxis": "anaphylaxis",
+    "bleeding": "bleeding",
+    "head-neck-back-injuries": "head-injury",
+    "poisoning": "poisoning",
+    "seizure": "seizure",
+    "shock": "shock",
+    "stroke": "stroke",
+    "diabetic-emergency": "diabetic-emergency",
+    "asthma": "asthma-attack",
+    "heart-attack": "heart-attack",
+    "heat-related-emergencies": "heat-emergency",
+}
+
+AMERICAN_REDCROSS_REMOVE = ["nav", "footer", "aside", ".breadcrumb",
+                             "[class*=cookie]", ".promo-banner",
+                             "[class*=coupon]", "[class*=store]",
+                             ".related-content"]
+
+
+def scrape_american_redcross(s3) -> int:
+    count = 0
+    base = "https://www.redcross.org/take-a-class/resources/learn-first-aid"
+    for topic, slug in AMERICAN_REDCROSS_ARTICLES.items():
+        url = f"{base}/{topic}"
+        print(f"[American Red Cross] Fetching: {url}")
+        try:
+            soup = fetch_page(url)
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            continue
+        md = to_markdown(soup, url, AMERICAN_REDCROSS_REMOVE)
+        key = f"american-redcross/{slug}_{topic}.md"
+        s3.put_object(Bucket=BUCKET, Key=key, Body=md.encode(), ContentType="text/markdown")
+        print(f"  Uploaded → s3://{BUCKET}/{key} ({len(md)} chars)")
+        count += 1
+    return count
+
+
+# ---- Healthdirect Australia ----
+HEALTHDIRECT_ARTICLES = {
+    "burns-and-scalds": "burns",
+    "choking": "choking",
+    "anaphylaxis": "anaphylaxis",
+    "seizures": "seizures",
+    "poisoning": "poisoning",
+    "nosebleed": "nosebleed",
+    "sprains-and-strains": "sprains",
+    "head-injuries": "head-injury",
+    "chest-pain": "chest-pain",
+    "fainting": "fainting",
+    "bites-and-stings": "bites-stings",
+    "wounds-cuts-and-grazes": "cuts",
+    "how-to-perform-cpr": "cpr",
+    "asthma": "asthma",
+    "eye-injuries": "eye-injury",
+    "chemical-burns": "chemical-burns",
+    "electric-shocks-and-burns": "electrical-burns",
+}
+
+HEALTHDIRECT_REMOVE = ["nav", "footer", "aside", ".breadcrumb",
+                        "[class*=cookie]", ".healthdirect-footer",
+                        ".service-finder", "[class*=symptom-checker]"]
+
+
+def scrape_healthdirect(s3) -> int:
+    count = 0
+    base = "https://www.healthdirect.gov.au"
+    for topic, slug in HEALTHDIRECT_ARTICLES.items():
+        url = f"{base}/{topic}"
+        print(f"[Healthdirect] Fetching: {url}")
+        try:
+            soup = fetch_page(url)
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            continue
+        md = to_markdown(soup, url, HEALTHDIRECT_REMOVE)
+        key = f"healthdirect/{slug}_{topic}.md"
+        s3.put_object(Bucket=BUCKET, Key=key, Body=md.encode(), ContentType="text/markdown")
+        print(f"  Uploaded → s3://{BUCKET}/{key} ({len(md)} chars)")
+        count += 1
+    return count
+
+
 def main():
     s3 = boto3.client("s3")
     nhs_count = scrape_nhs(s3)
     medline_count = scrape_medlineplus(s3)
     mayo_count = scrape_mayo(s3)
-    total = nhs_count + medline_count + mayo_count
-    print(f"\nDone. Uploaded {nhs_count} NHS + {medline_count} MedlinePlus + {mayo_count} Mayo Clinic = {total} total docs.")
+    brc_count = scrape_british_redcross(s3)
+    sja_count = scrape_sja(s3)
+    arc_count = scrape_american_redcross(s3)
+    hd_count = scrape_healthdirect(s3)
+    total = nhs_count + medline_count + mayo_count + brc_count + sja_count + arc_count + hd_count
+    print(f"\nDone. Uploaded {total} total docs:")
+    print(f"  NHS: {nhs_count}")
+    print(f"  MedlinePlus: {medline_count}")
+    print(f"  Mayo Clinic: {mayo_count}")
+    print(f"  British Red Cross: {brc_count}")
+    print(f"  St John Ambulance: {sja_count}")
+    print(f"  American Red Cross: {arc_count}")
+    print(f"  Healthdirect Australia: {hd_count}")
 
 
 if __name__ == "__main__":
