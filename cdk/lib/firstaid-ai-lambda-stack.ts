@@ -33,11 +33,7 @@ export class FirstAidAiLambdaStack extends cdk.Stack {
     lambdaRole.addToPolicy(new iam.PolicyStatement({
       sid: 'BedrockInvokeModel',
       actions: ['bedrock:InvokeModel'],
-      resources: [
-        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0`,
-        `arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0`,
-        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0`,
-      ],
+      resources: ['*'],
     }));
 
     // Bedrock KB Retrieve permission
@@ -70,7 +66,7 @@ export class FirstAidAiLambdaStack extends cdk.Stack {
       role: lambdaRole,
       environment: {
         KNOWLEDGE_BASE_ID: props.knowledgeBaseId,
-        CLAUDE_MODEL_ID: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
+        CLAUDE_MODEL_ID: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
         SIMILARITY_THRESHOLD: '0.5',
         PLACES_API_KEY_PARAM: placesApiKeyParamName,
         CLOUDFRONT_ORIGIN: '*', // Will be updated after CloudFront is deployed
