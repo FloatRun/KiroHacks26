@@ -104,8 +104,8 @@ aws apigatewayv2 get-route --api-id YOUR_API_ID --route-id YOUR_ROUTE_ID
 
 2. **Knowledge Base Retrieval Slow**
    ```bash
-   # Check OpenSearch Serverless collection status
-   aws opensearchserverless list-collections
+   # Check Bedrock Knowledge Base sync status
+   aws bedrock-agent get-knowledge-base --knowledge-base-id $KNOWLEDGE_BASE_ID
    # Should be "ACTIVE"
    ```
 
@@ -258,9 +258,6 @@ aws logs filter-log-events \
 
 #### Immediate (Within 1 hour)
 ```bash
-# Stop OpenSearch Serverless billing
-aws opensearchserverless delete-collection --id YOUR_COLLECTION_ID
-
 # Disable Lambda (optional)
 aws lambda put-function-configuration \
   --function-name firstaid-ai-triage \

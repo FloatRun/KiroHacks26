@@ -13,7 +13,7 @@
 - **Runtime:** AWS Lambda — Node.js 20.x, TypeScript, bundled with esbuild
 - **API:** AWS API Gateway HTTP API — single route `POST /api/triage`
 - **LLM:** Amazon Bedrock — `anthropic.claude-sonnet-4-20250514-v1:0` (two invocations per request: parser + formatter)
-- **RAG:** Amazon Bedrock Knowledge Base → OpenSearch Serverless (vector store) + Amazon Titan Text Embeddings v2
+- **RAG:** Amazon Bedrock Knowledge Base → S3 Vector (vector store) + Amazon Titan Text Embeddings v2
 - **Secrets:** AWS SSM Parameter Store (SecureString) for Google Places API key
 - **External API:** Google Places Nearby Search (facility finder)
 - **Logs:** AWS CloudWatch (reasoning field, errors)

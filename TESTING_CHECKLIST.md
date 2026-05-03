@@ -127,8 +127,8 @@
 
 ## Post-Demo Teardown
 
-### Cost Management (CRITICAL)
-- [ ] **OpenSearch Serverless**: Delete collection within 24 hours
+### Cost Management
+- [ ] **S3 Vector**: No urgent teardown needed (~$0.06/GB/month storage only)
 - [ ] **Bedrock Knowledge Base**: Disable or delete
 - [ ] **Lambda Function**: Delete or disable if not continuing
 - [ ] **CloudFront**: Delete distribution if not continuing

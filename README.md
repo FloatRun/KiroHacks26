@@ -122,7 +122,7 @@ cd ../frontend && npm run deploy
 cd cdk
 npm install
 cdk bootstrap  # First time only
-cdk deploy FirstaidAiKbStack      # Knowledge Base + OpenSearch
+cdk deploy FirstaidAiKbStack      # Knowledge Base + S3 Vector
 cdk deploy FirstaidAiLambdaStack  # Lambda + API Gateway
 cdk deploy FirstaidAiApiStack     # CloudFront + S3
 ```
@@ -219,7 +219,7 @@ node mock-server.js  # Serves on localhost:3001
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                OpenSearch Serverless                            │
+│                      S3 Vector Store                            │
 │  ┌─────────────────┐    ┌─────────────────┐                    │
 │  │  Vector Store   │    │  Medical        │                    │
 │  │  (Embeddings)   │    │  Protocols      │                    │
@@ -230,7 +230,7 @@ node mock-server.js  # Serves on localhost:3001
 **Data Flow:**
 1. User submits query → CloudFront → API Gateway → Lambda
 2. Lambda Stage 1: Parser (retrieve vs. clarify decision)
-3. If retrieve: Query Bedrock KB → OpenSearch similarity search
+3. If retrieve: Query Bedrock KB → S3 Vector similarity search
 4. Lambda Stage 2: Formatter (structured triage response)
 5. Optional: Google Places API for nearby facilities
 6. Response → CloudFront → User (reasoning stripped)
@@ -238,7 +238,7 @@ node mock-server.js  # Serves on localhost:3001
 **Cost Estimate:**
 - **Development:** ~$50/month (Lambda + API Gateway + CloudFront)
 - **Production (1K users/day):** ~$200/month
-- **⚠️ OpenSearch Serverless:** ~$700/month (tear down after demo!)
+- **S3 Vector Store:** ~$1/month (storage only, no idle charges)
 
 ## Performance Metrics
 
@@ -256,7 +256,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-**⚠️ Billing Warning:** OpenSearch Serverless accrues ~$700/month when idle. Tear down within 24 hours of demo completion.
+**💡 Cost Note:** S3 Vector Store accrues only storage charges (~$0.06/GB/month) with no idle minimum — no teardown required after demo.
 
 **📋 Pre-Submission Checklist**: See [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md) for complete validation steps.
 

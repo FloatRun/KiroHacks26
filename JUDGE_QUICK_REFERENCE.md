@@ -96,11 +96,11 @@ Try these inputs to see the core functionality:
 
 - **Development Time**: 2 days (hackathon timeframe)
 - **Lines of Code**: ~3,000 (TypeScript, strict mode)
-- **AWS Services**: 8 (Lambda, Bedrock, API Gateway, CloudFront, S3, SSM, OpenSearch, CloudWatch)
+- **AWS Services**: 8 (Lambda, Bedrock, API Gateway, CloudFront, S3, S3 Vector, SSM, CloudWatch)
 - **External APIs**: 2 (Google Places, OpenStreetMap tiles)
 - **Demo Scenarios**: 5 (covering all user journeys)
 - **Response Time**: <5 seconds target, 2.8s typical
 - **Accessibility**: WCAG AAA compliance on severity indicators
 - **Privacy**: Zero data retention, no tracking, no accounts
 
-**Cost Warning**: OpenSearch Serverless accrues ~$700/month when idle - will be torn down within 24 hours of demo completion.
+**Cost Note**: S3 Vector accrues only storage charges (~$0.06/GB/month) with no idle minimum — no teardown required after demo.

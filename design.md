@@ -15,7 +15,7 @@ graph TD
     Lambda["Lambda Function\n(Node.js 20.x, TypeScript)"]
     Bedrock1["Bedrock Claude\nclaude-sonnet-4\nStage 1: Parser"]
     KB["Bedrock Knowledge Base\n(Managed RAG)"]
-    AOSS["OpenSearch Serverless\n(Vector Store)"]
+    AOSS["S3 Vector\n(Vector Store)"]
     S3C["Web Scraper\n(Bedrock KB Data Source)"]
     Bedrock2["Bedrock Claude\nclaude-sonnet-4\nStage 3: Formatter"]
     Places["Google Places API\n(Nearby Search)"]
@@ -433,7 +433,7 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
 | Data source | Bedrock built-in web scraper (curated URLs from NHS 111, MedlinePlus, CDC, Red Cross, WHO) |
 | Chunking strategy | Fixed-size, ~300 tokens, 20% overlap |
 | Embedding model | Amazon Titan Text Embeddings v2 |
-| Vector store | OpenSearch Serverless |
+| Vector store | S3 Vector |
 | Retrieval top-K | 5 |
 | Similarity threshold | 0.5 (configurable via Lambda env var) |
 
@@ -492,10 +492,10 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "OpenSearchServerlessAccess",
+      "Sid": "S3VectorAccess",
       "Effect": "Allow",
-      "Action": ["aoss:APIAccessAll"],
-      "Resource": "arn:aws:aoss:{region}:{account}:collection/{collection-id}"
+      "Action": ["s3vectors:GetIndex", "s3vectors:QueryVectors"],
+      "Resource": "arn:aws:s3vectors:{region}:{account}:bucket/{bucket-name}/index/{index-name}"
     }
   ]
 }
@@ -592,7 +592,7 @@ LoadingState (in-flight request)
 │  ┌──────────────────────────────────────────────────┐  │
 │  │  Bedrock                                         │  │
 │  │  ├── Claude claude-sonnet-4 (Parser + Formatter) │  │
-│  │  └── Knowledge Base → OpenSearch Serverless      │  │
+│  │  └── Knowledge Base → S3 Vector                  │  │
 │  └──────────────────────────────────────────────────┘  │
 │                                                         │
 │  ┌──────────────┐    ┌──────────────────────────────┐  │

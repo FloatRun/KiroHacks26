@@ -8,7 +8,7 @@ User (Browser)
       → S3 Frontend Bucket (OAC, no public access)
       → API Gateway HTTP API  →  Lambda (firstaid-ai-triage)
                                     → Bedrock Claude (Parser)
-                                    → Bedrock Knowledge Base → OpenSearch Serverless
+                                    → Bedrock Knowledge Base → S3 Vector
                                     → Bedrock Claude (Formatter)
                                     → Google Places API (conditional)
                                     → SSM Parameter Store (cold start)
@@ -73,7 +73,7 @@ handler.ts
 | Data source | Bedrock built-in web scraper (curated URLs: NHS 111, MedlinePlus, CDC, Red Cross, WHO) |
 | Chunking | Fixed-size, ~300 tokens, 20% overlap |
 | Embedding model | Amazon Titan Text Embeddings v2 |
-| Vector store | OpenSearch Serverless |
+| Vector store | S3 Vector |
 | Retrieval top-K | 5 |
 | Similarity threshold | 0.5 (env var `SIMILARITY_THRESHOLD`) |
 
@@ -94,6 +94,6 @@ aws lambda update-function-code \
   --zip-file fileb://dist/handler.zip
 ```
 
-## Cost Warning
+## Cost Note
 
-OpenSearch Serverless accrues ~$700/month when idle. **Tear it down within 24 hours of demo completion.**
+S3 Vector accrues only storage charges (~$0.06/GB/month) with no idle minimum — no teardown required after demo.

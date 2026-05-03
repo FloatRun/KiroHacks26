@@ -92,7 +92,7 @@ Existing solutions fail underserved communities:
 - **Claude Sonnet 4**: Parser and formatter LLM invocations with forced tool use
 - **Knowledge Base**: Vector search across curated medical protocols
 - **Titan Text Embeddings v2**: Semantic similarity matching
-- **OpenSearch Serverless**: Vector store for medical corpus
+- **S3 Vector**: Vector store for medical corpus
 
 **Lambda Pipeline:**
 ```
@@ -222,7 +222,7 @@ The application handles five distinct user journeys:
 - Amazon Bedrock Claude Sonnet 4 for LLM processing
 - Amazon Bedrock Knowledge Base for RAG implementation
 - Amazon Titan Text Embeddings v2 for semantic search
-- OpenSearch Serverless for vector storage
+- Amazon S3 Vectors for vector storage
 
 **External Integrations:**
 - Google Places API for facility finding

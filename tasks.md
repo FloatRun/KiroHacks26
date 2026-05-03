@@ -28,7 +28,7 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 - [x] PE-2: Enable Amazon Bedrock model access for Amazon Titan Text Embeddings v2. Verify via Bedrock console. [CRITICAL]
 - [x] PE-3: Identify and curate the list of authoritative URLs to scrape for the 15–20 target scenarios (burns, cuts, choking, allergic reactions, head injuries, chest pain, fainting, poisoning, sprains, eye injuries, nosebleeds, animal bites, seizures, asthma attacks, hypoglycemia). Sources: NHS 111, MedlinePlus, CDC, Red Cross, WHO. [CRITICAL]
 - [x] PE-4: ~~Create S3 corpus bucket (`firstaid-ai-corpus`) and upload all corpus documents.~~ N/A — replaced by web scraper data source.
-- [x] PE-5: Create Bedrock Knowledge Base with web scraper data source. Configure target URLs from PE-3. Configure: fixed-size chunking (~300 tokens, 20% overlap), Titan Text Embeddings v2, OpenSearch Serverless vector store. [CRITICAL]
+- [x] PE-5: Create Bedrock Knowledge Base with web scraper data source. Configure target URLs from PE-3. Configure: fixed-size chunking (~300 tokens, 20% overlap), Titan Text Embeddings v2, S3 Vector vector store. [CRITICAL]
 - [x] PE-6: Run initial Knowledge Base ingestion and verify via Bedrock console test query. Confirm at least one scenario returns chunks with similarity score ≥ 0.5. [CRITICAL]
 - [x] PE-7: Store Google Places API key in AWS Systems Manager Parameter Store as SecureString at path `/firstaid-ai/places-api-key`. [CRITICAL]
 - [x] PE-8: Configure Kiro steering documents in `.kiro/steering/`: architecture.md, api-contract.md, tool-schemas.md, component-map.md, demo-scenarios.md.
@@ -214,7 +214,7 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 > Complete after the demo. Some of these have billing implications.
 
-- [ ] POST-1: **[BILLING WARNING] Tear down OpenSearch Serverless collection.** OpenSearch Serverless continues to accrue charges even when idle. Delete the collection via AWS Console or CLI within 24 hours of demo completion. Estimated cost if left running: ~$700/month. [CRITICAL]
+- [ ] POST-1: Clean up Bedrock Knowledge Base and S3 Vector bucket after demo if the project is not continuing. S3 Vector accrues only storage charges (~$0.06/GB/month) — no urgent teardown required.
 - [ ] POST-2: Delete or pause the Bedrock Knowledge Base (no ongoing charge once collection is deleted, but clean up for hygiene).
 - [ ] POST-3: Delete or disable the Lambda function and API Gateway HTTP API if the project is not continuing.
 - [ ] POST-4: Delete or disable the CloudFront distribution and empty/delete the frontend S3 bucket if the project is not continuing.

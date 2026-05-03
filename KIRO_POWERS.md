@@ -151,7 +151,7 @@ Two MCP servers were configured in the agent to extend Kiro's capabilities beyon
 }
 ```
 
-Used during the CDK and Lambda IAM work. Instead of asking Kiro to recall Bedrock Knowledge Base CDK construct signatures from training data, we queried the AWS docs MCP server for the exact `aws_cdk.aws_bedrock` construct API. This produced correct `CfnKnowledgeBase` and `CfnDataSource` configurations on the first attempt, including the correct chunking strategy enum values (`FIXED_SIZE`) and the OpenSearch Serverless collection ARN wiring.
+Used during the CDK and Lambda IAM work. Instead of asking Kiro to recall Bedrock Knowledge Base CDK construct signatures from training data, we queried the AWS docs MCP server for the exact `aws_cdk.aws_bedrock` construct API. This produced correct `CfnKnowledgeBase` and `CfnDataSource` configurations on the first attempt, including the correct chunking strategy enum values (`FIXED_SIZE`) and the S3 Vector bucket ARN wiring.
 
 The MCP server was also used to look up the `bedrock-agent-runtime:Retrieve` API response shape, which confirmed that the `retrievalResults[].score` field path was correct before writing `retrieval.ts`.
 

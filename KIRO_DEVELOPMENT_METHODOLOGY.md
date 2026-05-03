@@ -405,7 +405,7 @@ fixedSizeChunkingConfiguration: {
 }
 ```
 
-**Impact**: This produced correct `CfnKnowledgeBase` and `CfnDataSource` configurations on the first attempt, including the correct chunking strategy enum values and OpenSearch Serverless collection ARN wiring.
+**Impact**: This produced correct `CfnKnowledgeBase` and `CfnDataSource` configurations on the first attempt, including the correct chunking strategy enum values and S3 Vector bucket ARN wiring.
 
 **Alternative Without MCP**: Kiro would have generated plausible-looking but potentially incorrect construct properties based on training data, leading to CloudFormation deployment failures that would require debugging and iteration.
 

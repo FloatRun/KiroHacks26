@@ -247,7 +247,7 @@ The 30-second window between "something just happened" and "what do I do" is the
 ### Scalability and Cost
 
 - NFR-S1: The system is designed for hackathon-scale traffic (single-digit concurrent users). No auto-scaling configuration is required beyond Lambda defaults.
-- NFR-S2: OpenSearch Serverless must be torn down within 24 hours of demo completion to avoid ongoing billing.
+- NFR-S2: S3 Vector accrues only storage charges (~$0.06/GB/month) with no idle minimum; no urgent teardown is required after demo completion.
 
 ### Reliability
 
