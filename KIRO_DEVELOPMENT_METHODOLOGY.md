@@ -8,7 +8,7 @@ FirstAid AI was built entirely using Kiro's full feature spectrum, demonstrating
 
 ---
 
-## 🎯 Spec-Driven Development: The Foundation
+## Spec-Driven Development: The Foundation
 
 ### Strategic Approach
 
@@ -100,7 +100,7 @@ const handleClarificationSubmit = (answer: string) => {
 
 ---
 
-## 📋 Steering Docs: Persistent Context Architecture
+## Steering Docs: Persistent Context Architecture
 
 ### Strategic Steering File Organization
 
@@ -181,7 +181,7 @@ interface Facility {
 
 ---
 
-## 🚀 Vibe Coding: Mechanical Implementation Excellence
+## Vibe Coding: Mechanical Implementation Excellence
 
 ### Conversation Structure Strategy
 
@@ -283,7 +283,7 @@ new PolicyStatement({
 
 ---
 
-## 🔗 Agent Hooks: Development Loop Automation
+## Agent Hooks: Development Loop Automation
 
 ### Hook Strategy: Eliminate Expensive Feedback Loops
 

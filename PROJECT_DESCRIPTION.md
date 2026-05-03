@@ -23,7 +23,7 @@ Existing solutions fail underserved communities:
 
 ## Features & Functionality
 
-### 🎯 Core Triage Pipeline
+### Core Triage Pipeline
 
 **Two-Stage LLM Architecture:**
 1. **Parser Stage**: Determines whether to retrieve medical information or ask for clarification
@@ -40,7 +40,7 @@ Existing solutions fail underserved communities:
 - **Care Tier Recommendation**: "Self-care at home" / "Seek urgent care within 1 hour" / "Call emergency services now"
 - **Emergency Callout**: Prominent 911 button for emergency-level situations
 
-### 🗺️ Intelligent Facility Finding
+### Intelligent Facility Finding
 
 **Location-Aware Recommendations:**
 - Geolocation prefetch on page load (graceful degradation if denied)
@@ -55,7 +55,7 @@ Existing solutions fail underserved communities:
 - User location marker (distinct from facility pins)
 - Tap-to-reveal facility details with "Get Directions" handoff to Google Maps
 
-### 🛡️ Safety-First Design
+### Safety-First Design
 
 **Grounded Medical Advice:**
 - Bedrock Knowledge Base with curated medical corpus (NHS 111, MedlinePlus, CDC, Red Cross, WHO)
@@ -69,7 +69,7 @@ Existing solutions fail underserved communities:
 - No tracking pixels, analytics, or behavioral telemetry
 - No data retention beyond single request duration
 
-### ♿ Accessibility & Inclusion
+### Accessibility & Inclusion
 
 **WCAG AAA Compliance:**
 - Severity banners meet 7:1 contrast ratio
@@ -86,7 +86,7 @@ Existing solutions fail underserved communities:
 
 ## Technical Innovation
 
-### 🏗️ Serverless RAG Architecture
+### Serverless RAG Architecture
 
 **AWS Bedrock Integration:**
 - **Claude Sonnet 4**: Parser and formatter LLM invocations with forced tool use
@@ -105,7 +105,7 @@ Request → Parser → KB Retrieval → Similarity Gate → Formatter → Places
 - KB retrieval: <1 second
 - Formatter response: <2 seconds
 
-### 🔒 Security & Reliability
+### Security & Reliability
 
 **Least-Privilege IAM:**
 - Bedrock permissions scoped to specific model ARNs
