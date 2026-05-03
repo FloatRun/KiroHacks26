@@ -26,11 +26,11 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 - [x] PE-1: Enable Amazon Bedrock model access for Anthropic Claude (claude-sonnet-4) in the target AWS region (us-west-2 or us-east-1). Verify via Bedrock console. [CRITICAL]
 - [x] PE-2: Enable Amazon Bedrock model access for Amazon Titan Text Embeddings v2. Verify via Bedrock console. [CRITICAL]
-- [ ] PE-3: Identify and curate the list of authoritative URLs to scrape for the 15–20 target scenarios (burns, cuts, choking, allergic reactions, head injuries, chest pain, fainting, poisoning, sprains, eye injuries, nosebleeds, animal bites, seizures, asthma attacks, hypoglycemia). Sources: NHS 111, MedlinePlus, CDC, Red Cross, WHO. [CRITICAL]
+- [x] PE-3: Identify and curate the list of authoritative URLs to scrape for the 15–20 target scenarios (burns, cuts, choking, allergic reactions, head injuries, chest pain, fainting, poisoning, sprains, eye injuries, nosebleeds, animal bites, seizures, asthma attacks, hypoglycemia). Sources: NHS 111, MedlinePlus, CDC, Red Cross, WHO. [CRITICAL]
 - [x] PE-4: ~~Create S3 corpus bucket (`firstaid-ai-corpus`) and upload all corpus documents.~~ N/A — replaced by web scraper data source.
-- [ ] PE-5: Create Bedrock Knowledge Base with web scraper data source. Configure target URLs from PE-3. Configure: fixed-size chunking (~300 tokens, 20% overlap), Titan Text Embeddings v2, OpenSearch Serverless vector store. [CRITICAL]
-- [ ] PE-6: Run initial Knowledge Base ingestion and verify via Bedrock console test query. Confirm at least one scenario returns chunks with similarity score ≥ 0.5. [CRITICAL]
-- [ ] PE-7: Store Google Places API key in AWS Systems Manager Parameter Store as SecureString at path `/firstaid-ai/places-api-key`. [CRITICAL]
+- [x] PE-5: Create Bedrock Knowledge Base with web scraper data source. Configure target URLs from PE-3. Configure: fixed-size chunking (~300 tokens, 20% overlap), Titan Text Embeddings v2, OpenSearch Serverless vector store. [CRITICAL]
+- [x] PE-6: Run initial Knowledge Base ingestion and verify via Bedrock console test query. Confirm at least one scenario returns chunks with similarity score ≥ 0.5. [CRITICAL]
+- [x] PE-7: Store Google Places API key in AWS Systems Manager Parameter Store as SecureString at path `/firstaid-ai/places-api-key`. [CRITICAL]
 - [x] PE-8: Configure Kiro steering documents in `.kiro/steering/`: architecture.md, api-contract.md, tool-schemas.md, component-map.md, demo-scenarios.md.
 - [x] PE-9: Review requirements.md, design.md, and tasks.md for consistency. Confirm all five demo scenarios are covered.
 
@@ -43,15 +43,15 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 - [x] 1.1: Create frontend S3 bucket (`firstaid-ai-frontend`). Disable public access. Configure for static website hosting (index.html as default). [CRITICAL]
 - [x] 1.2: Create CloudFront distribution with S3 origin via OAC. Enable HTTPS. Set default root object to `index.html`. Configure 403/404 error responses to return `/index.html` with HTTP 200 (SPA routing fallback). [CRITICAL]
 - [x] 1.3: Create Lambda function (`firstaid-ai-triage`). Runtime: Node.js 20.x. Memory: 512 MB. Timeout: 15 seconds. [CRITICAL]
-- [ ] 1.4: Create API Gateway HTTP API. Add route: `POST /api/triage` → Lambda integration. Configure CORS: allow origin = CloudFront distribution domain, allow methods = POST, allow headers = Content-Type. [CRITICAL]
-- [ ] 1.5: Create Lambda IAM execution role with least-privilege policy: `bedrock:InvokeModel` (scoped to Claude model ARN), `bedrock-agent-runtime:Retrieve` (scoped to KB ARN), `ssm:GetParameter` (scoped to Places API key parameter ARN), `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`. Attach role to Lambda. [CRITICAL]
-- [ ] 1.6: Verify Lambda can be invoked via API Gateway with a test payload. Confirm CORS headers in response.
+- [x] 1.4: Create API Gateway HTTP API. Add route: `POST /api/triage` → Lambda integration. Configure CORS: allow origin = CloudFront distribution domain, allow methods = POST, allow headers = Content-Type. [CRITICAL]
+- [x] 1.5: Create Lambda IAM execution role with least-privilege policy: `bedrock:InvokeModel` (scoped to Claude model ARN), `bedrock-agent-runtime:Retrieve` (scoped to KB ARN), `ssm:GetParameter` (scoped to Places API key parameter ARN), `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`. Attach role to Lambda. [CRITICAL]
+- [x] 1.6: Verify Lambda can be invoked via API Gateway with a test payload. Confirm CORS headers in response.
 
 ### Scaffolding
 
 - [x] 1.7: Scaffold React + Vite + TypeScript + Tailwind CSS frontend project. Confirm `npm run dev` and `npm run build` succeed. [CRITICAL]
 - [x] 1.8: Define shared TypeScript types in `src/types/api.ts`: `TriageRequest`, `TriageResponse`, `ClarificationResponse`, `ErrorResponse`, `Facility`, `Severity`, `ClarificationReason`. [CRITICAL]
-- [ ] 1.9: Scaffold Lambda TypeScript project with esbuild. Confirm `npm run build` produces `dist/handler.js`. [CRITICAL]
+- [x] 1.9: Scaffold Lambda TypeScript project with esbuild. Confirm `npm run build` produces `dist/handler.js`. [CRITICAL]
 - [ ] 1.10: Write frontend deployment script: `aws s3 sync dist/ s3://firstaid-ai-frontend/ --delete` + CloudFront invalidation.
 - [ ] 1.11: Write backend deployment script: TypeScript build + `aws lambda update-function-code`.
 - [ ] 1.12: Create mock Lambda handler that returns a hardcoded `TriageResponse` with `type: "triage"`, `severity: "urgent_care"`, 3 steps, `careTier: "urgent_care"`, `outOfScope: false`. Deploy to Lambda. Verify frontend can call it.
@@ -63,34 +63,34 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 ### Lambda Handler Scaffolding
 
 - [x] 2.1: Implement request parsing and validation in Lambda handler: parse JSON body, validate `query` (required, string, max 500 chars), validate `location` (optional, lat/lng numbers). Return 400 on invalid input. [CRITICAL]
-- [ ] 2.2: Implement SSM Parameter Store integration: read Places API key at cold start, cache in module scope. Use `@aws-sdk/client-ssm`. [CRITICAL]
+- [x] 2.2: Implement SSM Parameter Store integration: read Places API key at cold start, cache in module scope. Use `@aws-sdk/client-ssm`. [CRITICAL]
 - [x] 2.3: Implement CORS response headers helper. All Lambda responses must include `Access-Control-Allow-Origin` set to CloudFront domain.
 
 ### Stage 1: Parser Integration [CRITICAL]
 
-- [ ] 2.4: Implement `invokeParser(query: string)` function using `@aws-sdk/client-bedrock-runtime` `InvokeModelCommand`. Pass `parse_user_input` tool definition (verbatim from design.md). Set `tool_choice` to force tool use. [CRITICAL]
+- [x] 2.4: Implement `invokeParser(query: string)` function using `@aws-sdk/client-bedrock-runtime` `InvokeModelCommand`. Pass `parse_user_input` tool definition (verbatim from design.md). Set `tool_choice` to force tool use. [CRITICAL]
 - [ ] 2.5: Write and hand-tune the parser system prompt (NOT Kiro-generated). Test against: "kid burned hand on stove" (expect retrieve), "it hurts" (expect clarify), "my dog bit me" (expect retrieve), "I feel weird" (expect clarify). [CRITICAL]
-- [ ] 2.6: Implement clarification short-circuit: if parser returns `action: "clarify"`, return `{ type: "clarification", question, reason }` immediately. No KB or formatter calls. [CRITICAL]
-- [ ] 2.7: Implement error handling for parser: catch InvokeModel errors and timeouts, return 503 `{ error: "parser_unavailable" }`.
+- [x] 2.6: Implement clarification short-circuit: if parser returns `action: "clarify"`, return `{ type: "clarification", question, reason }` immediately. No KB or formatter calls. [CRITICAL]
+- [x] 2.7: Implement error handling for parser: catch InvokeModel errors and timeouts, return 503 `{ error: "parser_unavailable" }`.
 
 ### Stage 2: Knowledge Base Retrieval Integration [CRITICAL]
 
-- [ ] 2.8: Implement `retrieveFromKnowledgeBase(normalizedQuery: string)` function using `@aws-sdk/client-bedrock-agent-runtime` `RetrieveCommand`. Request top 5 chunks. [CRITICAL]
-- [ ] 2.9: Implement similarity threshold gate: compute `maxScore = Math.max(...chunks.map(c => c.score))`. If `maxScore < SIMILARITY_THRESHOLD` (default 0.5, read from env var), return out-of-scope triage response. [CRITICAL]
-- [ ] 2.10: Implement error handling for retrieval: catch Retrieve errors and timeouts, return 503 `{ error: "retrieval_unavailable" }`.
+- [x] 2.8: Implement `retrieveFromKnowledgeBase(normalizedQuery: string)` function using `@aws-sdk/client-bedrock-agent-runtime` `RetrieveCommand`. Request top 5 chunks. [CRITICAL]
+- [x] 2.9: Implement similarity threshold gate: compute `maxScore = Math.max(...chunks.map(c => c.score))`. If `maxScore < SIMILARITY_THRESHOLD` (default 0.5, read from env var), return out-of-scope triage response. [CRITICAL]
+- [x] 2.10: Implement error handling for retrieval: catch Retrieve errors and timeouts, return 503 `{ error: "retrieval_unavailable" }`.
 
 ### Stage 3: Formatter Integration [CRITICAL]
 
-- [ ] 2.11: Implement `invokeFormatter(chunks, extractedContext)` function using `InvokeModelCommand`. Pass `submit_triage` tool definition (verbatim from design.md). Pass retrieved chunks as context in user message. Set `tool_choice` to force tool use. [CRITICAL]
+- [x] 2.11: Implement `invokeFormatter(chunks, extractedContext)` function using `InvokeModelCommand`. Pass `submit_triage` tool definition (verbatim from design.md). Pass retrieved chunks as context in user message. Set `tool_choice` to force tool use. [CRITICAL]
 - [ ] 2.12: Write and hand-tune the formatter system prompt (NOT Kiro-generated). Test against retrieved chunks for: burn scenario (expect 3–5 imperative steps, urgent_care or emergency), choking scenario (expect emergency), minor cut (expect self_care). [CRITICAL]
-- [ ] 2.13: Implement reasoning log: extract `reasoning` from formatter output, write to CloudWatch via `console.log`. Strip from client response. [CRITICAL]
-- [ ] 2.14: Implement out-of-scope gate: if formatter returns `outOfScope: true`, return out-of-scope triage response.
-- [ ] 2.15: Implement error handling for formatter: catch InvokeModel errors and timeouts, return 503 `{ error: "triage_unavailable" }`.
+- [x] 2.13: Implement reasoning log: extract `reasoning` from formatter output, write to CloudWatch via `console.log`. Strip from client response. [CRITICAL]
+- [x] 2.14: Implement out-of-scope gate: if formatter returns `outOfScope: true`, return out-of-scope triage response.
+- [x] 2.15: Implement error handling for formatter: catch InvokeModel errors and timeouts, return 503 `{ error: "triage_unavailable" }`.
 
 ### Clarification Flow Integration [CRITICAL]
 
-- [ ] 2.16: Verify end-to-end clarification flow: submit ambiguous query → parser returns clarify → Lambda returns clarification response → (frontend in Phase 3 handles round-trip). [CRITICAL]
-- [ ] 2.17: Confirm one-clarification-per-session limit is enforced client-side (Phase 3 task 3.7). Document that Lambda has no session state and does not enforce this limit.
+- [x] 2.16: Verify end-to-end clarification flow: submit ambiguous query → parser returns clarify → Lambda returns clarification response → (frontend in Phase 3 handles round-trip). [CRITICAL]
+- [x] 2.17: Confirm one-clarification-per-session limit is enforced client-side (Phase 3 task 3.7). Document that Lambda has no session state and does not enforce this limit.
 
 ### End-to-End Lambda Test
 
@@ -105,34 +105,34 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 ### API Client
 
-- [ ] 3.1: Implement `src/api/triage.ts`: `postTriage(request: TriageRequest): Promise<ApiResponse>`. Uses `fetch` to POST to `/api/triage`. Handles 200, 400, 503, 504. Throws typed errors. [CRITICAL]
+- [x] 3.1: Implement `src/api/triage.ts`: `postTriage(request: TriageRequest): Promise<ApiResponse>`. Uses `fetch` to POST to `/api/triage`. Handles 200, 400, 503, 504. Throws typed errors. [CRITICAL]
 
 ### Geolocation
 
-- [ ] 3.2: Implement geolocation prefetch in `App.tsx` or a `useGeolocation` hook. Call `navigator.geolocation.getCurrentPosition()` on mount. Store `{ lat, lng }` in state. Handle denial gracefully (set location to null). [CRITICAL]
+- [x] 3.2: Implement geolocation prefetch in `App.tsx` or a `useGeolocation` hook. Call `navigator.geolocation.getCurrentPosition()` on mount. Store `{ lat, lng }` in state. Handle denial gracefully (set location to null). [CRITICAL]
 
 ### Core UI Components
 
-- [ ] 3.3: Implement `QueryInput` component: autofocused text field, 500-char limit with counter, Enter-key submit, submit button, disabled state during loading. Tailwind mobile-first layout. [CRITICAL]
-- [ ] 3.4: Implement `SeverityBanner` component: accepts `severity` prop, applies color classes (`bg-green-500`, `bg-yellow-400`, `bg-red-600`), renders severity label at minimum 24px with WCAG AAA contrast. [CRITICAL]
-- [ ] 3.5: Implement `StepsList` component: renders `steps` array as `<ol>` with `<li>` items, 1.5× line height minimum. [CRITICAL]
-- [ ] 3.6: Implement `CareTierAction` component: maps `careTier` to action label ("Self-care at home", "Seek urgent care within 1 hour", "Call emergency services now"). [CRITICAL]
-- [ ] 3.7: Implement `EmergencyNumberCallout` component: conditionally rendered when `severity === "emergency"`. Displays "Call 911". Touch target ≥ 44×44px. [CRITICAL]
-- [ ] 3.8: Implement `OutOfScopeRefusal` component: distinct UI for `outOfScope === true`. Plain language message. Includes suggestion to call emergency number.
-- [ ] 3.9: Implement `DisclaimerFooter` component: persistent `<footer>` with disclaimer text. Rendered on all views.
-- [ ] 3.10: Implement `LoadingState` component: spinner or skeleton. `aria-live="polite"` announcement.
-- [ ] 3.11: Implement `ErrorState` component: plain language error message, retry button. `aria-live="assertive"` announcement.
+- [x] 3.3: Implement `QueryInput` component: autofocused text field, 500-char limit with counter, Enter-key submit, submit button, disabled state during loading. Tailwind mobile-first layout. [CRITICAL]
+- [x] 3.4: Implement `SeverityBanner` component: accepts `severity` prop, applies color classes (`bg-green-500`, `bg-yellow-400`, `bg-red-600`), renders severity label at minimum 24px with WCAG AAA contrast. [CRITICAL]
+- [x] 3.5: Implement `StepsList` component: renders `steps` array as `<ol>` with `<li>` items, 1.5× line height minimum. [CRITICAL]
+- [x] 3.6: Implement `CareTierAction` component: maps `careTier` to action label ("Self-care at home", "Seek urgent care within 1 hour", "Call emergency services now"). [CRITICAL]
+- [x] 3.7: Implement `EmergencyNumberCallout` component: conditionally rendered when `severity === "emergency"`. Displays "Call 911". Touch target ≥ 44×44px. [CRITICAL]
+- [x] 3.8: Implement `OutOfScopeRefusal` component: distinct UI for `outOfScope === true`. Plain language message. Includes suggestion to call emergency number.
+- [x] 3.9: Implement `DisclaimerFooter` component: persistent `<footer>` with disclaimer text. Rendered on all views.
+- [x] 3.10: Implement `LoadingState` component: spinner or skeleton. `aria-live="polite"` announcement.
+- [x] 3.11: Implement `ErrorState` component: plain language error message, retry button. `aria-live="assertive"` announcement.
 
 ### Clarification UI [CRITICAL]
 
-- [ ] 3.12: Implement `ClarificationView`: renders when API response `type === "clarification"`. Displays `question` prominently. Shows original query as immutable label (`OriginalQueryDisplay`). Provides `ClarificationInput` text field. [CRITICAL]
-- [ ] 3.13: Implement clarification submission logic: on submit, concatenate `${originalQuery}. ${clarificationAnswer}` and POST as fresh request. Track clarification count in component state. [CRITICAL]
-- [ ] 3.14: Implement one-clarification-per-session limit: if clarification count ≥ 1 and response is again `type: "clarification"`, render `OutOfScopeRefusal` without making a third API call. [CRITICAL]
+- [x] 3.12: Implement `ClarificationView`: renders when API response `type === "clarification"`. Displays `question` prominently. Shows original query as immutable label (`OriginalQueryDisplay`). Provides `ClarificationInput` text field. [CRITICAL]
+- [x] 3.13: Implement clarification submission logic: on submit, concatenate `${originalQuery}. ${clarificationAnswer}` and POST as fresh request. Track clarification count in component state. [CRITICAL]
+- [x] 3.14: Implement one-clarification-per-session limit: if clarification count ≥ 1 and response is again `type: "clarification"`, render `OutOfScopeRefusal` without making a third API call. [CRITICAL]
 
 ### View Orchestration
 
-- [ ] 3.15: Implement `App.tsx` view state machine: `landing` → `loading` → `triage | clarification | error`. Manage transitions based on API response type. [CRITICAL]
-- [ ] 3.16: Implement `TriageView`: composes `SeverityBanner`, `StepsList`, `CareTierAction`, `EmergencyNumberCallout`, `FacilityMap` (placeholder), `OutOfScopeRefusal`. [CRITICAL]
+- [x] 3.15: Implement `App.tsx` view state machine: `landing` → `loading` → `triage | clarification | error`. Manage transitions based on API response type. [CRITICAL]
+- [x] 3.16: Implement `TriageView`: composes `SeverityBanner`, `StepsList`, `CareTierAction`, `EmergencyNumberCallout`, `FacilityMap` (placeholder), `OutOfScopeRefusal`. [CRITICAL]
 
 ### Accessibility and Responsive Layout
 
@@ -152,18 +152,18 @@ Phases 2 and 3 run in parallel. Phase 4 (service finder + map) is not on the cri
 
 ### Google Places Integration (Lambda)
 
-- [ ] 4.1: Implement `findNearbyFacilities(careTier, location, apiKey)` function in Lambda. Map `urgent_care` → keyword "urgent care", radius 10000m. Map `emergency` → type "hospital", radius 15000m. [FR6]
-- [ ] 4.2: Implement Places API response parsing: filter to `opening_hours.open_now === true`, compute Haversine distance from user coordinates, sort ascending, return top 3–5 results as `Facility[]`. [FR6]
-- [ ] 4.3: Integrate `findNearbyFacilities` into Lambda handler: call only when `careTier !== "self_care"` and `location` is present. Wrap in try/catch; on failure, continue with `facilities: []`. [FR6]
+- [x] 4.1: Implement `findNearbyFacilities(careTier, location, apiKey)` function in Lambda. Map `urgent_care` → keyword "urgent care", radius 10000m. Map `emergency` → type "hospital", radius 15000m. [FR6]
+- [x] 4.2: Implement Places API response parsing: filter to `opening_hours.open_now === true`, compute Haversine distance from user coordinates, sort ascending, return top 3–5 results as `Facility[]`. [FR6]
+- [x] 4.3: Integrate `findNearbyFacilities` into Lambda handler: call only when `careTier !== "self_care"` and `location` is present. Wrap in try/catch; on failure, continue with `facilities: []`. [FR6]
 - [ ] 4.4: Test Places integration via API Gateway with a real location and `urgent_care` scenario. Verify 3–5 facilities returned with correct fields.
 
 ### Leaflet Map Component (Frontend)
 
-- [ ] 4.5: Install `leaflet` and `react-leaflet`. Add Leaflet CSS import. [FR7]
-- [ ] 4.6: Implement `FacilityMap` component: initialize Leaflet map centered on user coordinates. Render facility pins (default marker). Render user location marker (distinct icon). [FR7]
-- [ ] 4.7: Implement facility pin info window: on pin click/tap, show popup with facility name and distance (formatted as miles or km). [FR7]
-- [ ] 4.8: Implement "Get Directions" button in info window: opens `https://www.google.com/maps/dir/?api=1&destination={lat},{lng}` in new tab. Touch target ≥ 44×44px. [FR7]
-- [ ] 4.9: Integrate `FacilityMap` into `TriageView`: render only when `facilities` is non-empty. Pass user coordinates and facilities as props. [FR7]
+- [x] 4.5: Install `leaflet` and `react-leaflet`. Add Leaflet CSS import. [FR7]
+- [x] 4.6: Implement `FacilityMap` component: initialize Leaflet map centered on user coordinates. Render facility pins (default marker). Render user location marker (distinct icon). [FR7]
+- [x] 4.7: Implement facility pin info window: on pin click/tap, show popup with facility name and distance (formatted as miles or km). [FR7]
+- [x] 4.8: Implement "Get Directions" button in info window: opens `https://www.google.com/maps/dir/?api=1&destination={lat},{lng}` in new tab. Touch target ≥ 44×44px. [FR7]
+- [x] 4.9: Integrate `FacilityMap` into `TriageView`: render only when `facilities` is non-empty. Pass user coordinates and facilities as props. [FR7]
 - [ ] 4.10: Test map at 375px viewport. Verify pins are tappable, info window renders, directions link opens correctly.
 
 ---
