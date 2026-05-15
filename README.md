@@ -1,8 +1,8 @@
 # FirstAid AI
 
 **Track:** Human-Centered Design  
-**Demo:** https://d32xsl7uhmmecy.cloudfront.net/ (deactivated) 
-**Video:** [[Demo Video]](https://www.youtube.com/watch?v=1BiMNqMJajo&t=2s)
+**Demo:** https://d32xsl7uhmmecy.cloudfront.net/ (deactivated)  
+**Video:** https://www.youtube.com/watch?v=1BiMNqMJajo&t=2s
 
 ## Overview
 
@@ -39,31 +39,6 @@ FirstAid AI delivers structured, grounded first-aid triage guidance in under 5 s
 - WCAG AAA accessibility compliance
 - Mobile-first responsive design (375px target)
 
-## Documentation
-
-### For Judges & Evaluators
-- **[JUDGE_QUICK_REFERENCE.md](JUDGE_QUICK_REFERENCE.md)**: 5-minute evaluation guide with rubric alignment
-
-### Project Overview
-- **[PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md)**: Complete features, functionality, and technical specifications
-- **[README.md](README.md)**: Quick start guide and architecture overview (this file)
-
-### Kiro Development Methodology  
-- **[KIRO_POWERS.md](KIRO_POWERS.md)**: High-level summary of Kiro usage with rubric alignment
-- **[KIRO_DEVELOPMENT_METHODOLOGY.md](KIRO_DEVELOPMENT_METHODOLOGY.md)**: Detailed analysis of spec-driven development, steering docs, hooks, MCP, and powers with specific examples
-
-### Operations & Testing
-- **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)**: Complete validation checklist for all 5 demo scenarios
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**: Debug guide with common issues and solutions
-- **[demo-script.md](demo-script.md)**: 90-second demo script with timing and technical highlights
-
-## Demo Scenarios
-
-1. **Clarification:** "I feel weird" → intelligent follow-up question
-2. **Self-Care:** "Small paper cut" → green banner, home care steps
-3. **Urgent Care:** "Child burned hand" → yellow banner, facility map
-4. **Emergency:** "Not breathing" → red banner, 911 callout, hospital map  
-5. **Out-of-Scope:** "Best restaurant" → graceful refusal with safety net
 
 ## Kiro Development Methodology
 
